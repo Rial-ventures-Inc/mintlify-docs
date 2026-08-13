@@ -1,0 +1,93 @@
+---
+title: "Kotlin SDK"
+description: "Native Android capture for rial — v0.10.1."
+---
+
+Native Android capture for rial — the SDK takes the photo, signs it with device signals (hardware attestation, location) and submits it for verification.
+
+## Install
+
+<CodeGroup>
+```groovy build.gradle
+implementation 'com.getrial:sdk:0.10.1'          // camera + template flow (Compose)
+// or, camera-only without Compose:
+implementation 'com.getrial:sdk-core:0.10.1'
+```
+</CodeGroup>
+
+<Note>
+  **Access.** Published to GitHub Packages. The repository is private — you'll need a PAT with `read:packages` scope from a GitHub account that has access to `rial-kotlin`. Ask your rial contact for access.
+
+  ```groovy settings.gradle
+  dependencyResolutionManagement {
+      repositories {
+          google()
+          mavenCentral()
+          maven {
+              url 'https://maven.pkg.github.com/Rial-ventures-Inc/rial-kotlin'
+              credentials {
+                  username = providers.gradleProperty('gpr.user').orNull
+                  password = providers.gradleProperty('gpr.token').orNull
+              }
+          }
+      }
+  }
+  ```
+
+  Set `gpr.user` and `gpr.token` in `~/.gradle/gradle.properties` — never commit them.
+
+  Public distribution via Maven Central is planned — this step disappears then.
+</Note>
+
+Permissions (`CAMERA`, `INTERNET`, location) are contributed by the SDK's own manifest via the manifest merger — there's nothing to declare yourself. Each module also ships its own R8 consumer rules, so integrating the SDK doesn't require writing any ProGuard/R8 rules of your own.
+
+## Configure once
+
+Call this from your `Application.onCreate`:
+
+```kotlin
+Rial.configure(this, publishableKey = "pk_live_…")
+// staging for testing: Rial.configure(this, publishableKey = "pk_test_…", environment = RialEnvironment.Staging)
+```
+
+## Template flow (turnkey)
+
+The org and template slugs come from the template link published in the dashboard (`/l/{org}/{template}`):
+
+```kotlin
+Rial.templateFlow(orgSlug = "acme", templateSlug = "inspeccion", activity = this)
+```
+
+This renders the complete flow: typed steps, the tenant's branding, camera, review, and a durable submit backed by WorkManager — offline retries, and it resumes after the process is killed. Rotations are survived by reusing the same verification instead of starting over.
+
+For finer control, combine `Rial.openFlow(...)` with `RialTemplateFlow(outcome.session, activity)`.
+
+## Camera only (bring your own UI)
+
+```kotlin
+val camera = RialCameraView(context).apply {
+    onCaptured = { result -> /* result.captureId */ }
+    onError = { e -> /* … */ }
+    start(activity, publishableKey, baseUrl)
+}
+// custom shutter: showShutter = false + camera.capture()
+// bytes you already have (weaker proof): Rial.capture().capture(jpegBytes)
+```
+
+## Modules
+
+| Module | Contains |
+| --- | --- |
+| `com.getrial:sdk` | Everything, including Compose UI. |
+| `sdk-core` | Camera, device signals, and the offline submission queue — no Compose. |
+| `sdk-flow` | Template flow model and state machine. |
+| `sdk-ui` | The template flow's Compose screen. |
+
+Dependencies run in one direction: `ui → flow → core`.
+
+## Links
+
+<CardGroup cols={2}>
+  <Card title="GitHub repository" icon="github" href="https://github.com/Rial-ventures-Inc/rial-kotlin" />
+  <Card title="Releases" icon="tag" href="https://github.com/Rial-ventures-Inc/rial-kotlin/releases" />
+</CardGroup>

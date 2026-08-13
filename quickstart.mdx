@@ -1,0 +1,112 @@
+---
+title: "Quickstart"
+description: "Zero to a verification with the rial API."
+---
+
+## What this API does
+
+You mint a **verification** against your tenant account, get back a `capture_url`, and send that link to your end-user (an insurance claimant, a marketplace seller, whoever needs to prove a photo is real). They open the link on their phone, capture the photos you asked for, and the verification's status moves through:
+
+```
+pending → partially_captured → completed | expired | failed
+```
+
+Once `completed`, the verification carries a `verdict` (`verified` / `suspicious` / `failed`) built from on-device signals — screen-recapture detection and AI-generation detection — plus the captured images themselves. You can also attach a claimant `narrative` and finalize the case for deeper batch analysis (Case Analysis).
+
+## Base URLs
+
+| Environment | Base URL | Notes |
+| --- | --- | --- |
+| Staging | `https://platform-staging.get-rial.com` | Safe to hit while integrating. |
+| Production | `https://platform.get-rial.com` | Live tenant traffic — don't test against it. |
+
+## Authentication
+
+Server-to-server calls use a tenant-scoped API key, format `pk_live_<ulid>`, sent as a bearer token:
+
+```
+Authorization: Bearer pk_live_01HXYZABCDEFGHJKMNPQRSTVWX
+```
+
+<Note>
+  A rial operator mints your API key today (`POST /v1/admin/tenants/:id/api-keys` — an internal, operator-only route). The plaintext key is returned once, at mint time; only its hash is stored afterwards. If you're integrating and don't have a key yet, ask your rial contact.
+</Note>
+
+`pk_` keys are client-side bearer tokens meant for SDKs; `rk_secret_` keys are server-side only.
+
+<Warning>
+  API secrets (`rk_secret_…`) must be kept confidential and used exclusively within server-side environments. Never expose these tokens in client-side applications, mobile codebases, or browsers.
+</Warning>
+
+The link you hand your end-user needs no key at all: possession of the verification id in the URL *is* the credential for the capture flow (same trust model as a Stripe payment-intent `client_secret`) — see the [API reference](/api-reference) for the full set of auth modes.
+
+## Quickstart: zero to a verification
+
+<Steps>
+  <Step title="Issue a verification">
+    `POST /v1/verifications` with either `max_captures: N` (N anonymous shots) or a `steps` array for guided slots. This example asks for 3 photos and requests both fraud signals:
+
+    <CodeGroup>
+    ```bash curl
+    curl https://platform-staging.get-rial.com/v1/verifications \
+      -H "Authorization: Bearer pk_live_<your-key>" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "max_captures": 3,
+        "expires_in_seconds": 3600,
+        "signals_required": ["screen", "ai"],
+        "context": { "kind": "damage_claim", "summary": "Toyota Corolla front bumper" },
+        "webhook_url": "https://api.acmeinsurance.com/rial/webhooks",
+        "metadata": { "claim_id": "CLM-9912" }
+      }'
+    ```
+    </CodeGroup>
+
+    The response includes `id` (`vfy_<ulid>`) and `capture_url` — a link on `verify.get-rial.com`.
+  </Step>
+  <Step title="Share the capture link">
+    Send `capture_url` to your end-user however you'd send any link — SMS, WhatsApp, email. No app install, no account: it opens directly in their mobile browser.
+  </Step>
+  <Step title="The claimant captures photos">
+    The hosted capture flow walks them through each requested shot, runs the on-device fraud signals, and uploads directly to storage. You don't need to build any of this — it's rial's hosted page at the `capture_url` you already have.
+  </Step>
+  <Step title="Read back the result">
+    <CodeGroup>
+    ```bash curl
+    curl https://platform-staging.get-rial.com/v1/verifications/vfy_01HXYZABCDEFGHJKMNPQRSTVWX \
+      -H "Authorization: Bearer pk_live_<your-key>"
+    ```
+    </CodeGroup>
+
+    A completed verification that failed a fraud check looks like this:
+
+    ```json
+    {
+      "status": "completed",
+      "verdict": { "rial": false, "signals": ["screen_detected"] }
+    }
+    ```
+
+    `signals` lists which on-device fraud signals fired — here, `screen_detected` means the capture looked like a screen recapture rather than a live photo.
+
+    Poll it, or — better — configure `webhook_url` on the verification (as in the example above) and rial will POST a `verification.created` event and later a completion event to it, HMAC-signed with your tenant's webhook secret, so you don't have to poll at all.
+  </Step>
+  <Step title="Optional: finalize for Case Analysis">
+    If you collect a written narrative from the claimant, attach it and close the case for deeper multi-image cross-reasoning:
+
+    <CodeGroup>
+    ```bash curl
+    curl -X POST https://platform-staging.get-rial.com/v1/verifications/vfy_01HXYZABCDEFGHJKMNPQRSTVWX/finalize \
+      -H "Authorization: Bearer pk_live_<your-key>" \
+      -H "Content-Type: application/json" \
+      -d '{ "narrative": "Front bumper damaged after a low-speed collision in a parking lot." }'
+    ```
+    </CodeGroup>
+  </Step>
+</Steps>
+
+## Full reference
+
+Every endpoint, request/response schema, and error shape, generated straight from the API's own OpenAPI document — nothing hand-copied, nothing to go stale.
+
+<Card title="Open the API reference" icon="book-open" href="/api-reference" />
