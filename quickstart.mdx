@@ -29,14 +29,10 @@ Authorization: Bearer pk_live_01HXYZABCDEFGHJKMNPQRSTVWX
 ```
 
 <Note>
-  A rial operator mints your API key today (`POST /v1/admin/tenants/:id/api-keys` — an internal, operator-only route). The plaintext key is returned once, at mint time; only its hash is stored afterwards. If you're integrating and don't have a key yet, ask your rial contact.
+  A rial operator mints your API key today. The plaintext key is returned once, at mint time; only its hash is stored afterwards. If you're integrating and don't have a key yet, ask your rial contact.
 </Note>
 
-`pk_` keys are client-side bearer tokens meant for SDKs; `rk_secret_` keys are server-side only.
-
-<Warning>
-  API secrets (`rk_secret_…`) must be kept confidential and used exclusively within server-side environments. Never expose these tokens in client-side applications, mobile codebases, or browsers.
-</Warning>
+There's a second, more privileged key type (`rk_secret_…`) that must never leave your servers — see [Authentication](/authentication) for the full breakdown of both key types, plus environments and how the same key authenticates the mobile SDKs.
 
 The link you hand your end-user needs no key at all: possession of the verification id in the URL *is* the credential for the capture flow (same trust model as a Stripe payment-intent `client_secret`) — see the [API reference](/api-reference) for the full set of auth modes.
 
@@ -83,13 +79,23 @@ The link you hand your end-user needs no key at all: possession of the verificat
     ```json
     {
       "status": "completed",
-      "verdict": { "rial": false, "signals": ["screen_detected"] }
+      "verdict": {
+        "label": "suspicious",
+        "score": 0.82,
+        "signals": {
+          "screen_detection": { "screen_detected": true, "confidence": 0.94 }
+        },
+        "reason_code": "screen_detected"
+      }
     }
     ```
 
-    `signals` lists which on-device fraud signals fired — here, `screen_detected` means the capture looked like a screen recapture rather than a live photo.
+    `reason_code` names which signal drove the label — here, the capture looked like a screen recapture rather than a live photo. See [Verdicts](/verdicts) for the full signal set and what each one checks.
 
-    Poll it, or — better — configure `webhook_url` on the verification (as in the example above) and rial will POST a `verification.created` event and later a completion event to it, HMAC-signed with your tenant's webhook secret, so you don't have to poll at all.
+    If the response doesn't contain a `verdict` object yet, analysis is still processing — poll again.
+  </Step>
+  <Step title="Optional: skip polling with a webhook">
+    Set `webhook_url` when you create the verification (as in the example above) and rial POSTs to it instead of making you poll — deliveries are HMAC-signed with your tenant's webhook secret so you can verify they actually came from rial.
   </Step>
   <Step title="Optional: finalize for Case Analysis">
     If you collect a written narrative from the claimant, attach it and close the case for deeper multi-image cross-reasoning:
@@ -105,8 +111,19 @@ The link you hand your end-user needs no key at all: possession of the verificat
   </Step>
 </Steps>
 
-## Full reference
+## Next steps
 
-Every endpoint, request/response schema, and error shape, generated straight from the API's own OpenAPI document — nothing hand-copied, nothing to go stale.
-
-<Card title="Open the API reference" icon="book-open" href="/api-reference" />
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/authentication">
+    Both key types, environments, and how the SDKs authenticate.
+  </Card>
+  <Card title="Verdicts" icon="badge-check" href="/verdicts">
+    What `status` and `verdict` mean, and what each signal checks.
+  </Card>
+  <Card title="Kotlin SDK" icon="android" href="/sdks/kotlin">
+    Capture natively on Android instead of hosting the link.
+  </Card>
+  <Card title="API reference" icon="book-open" href="/api-reference">
+    Every endpoint, request/response schema, and error shape — generated straight from the API's own OpenAPI document.
+  </Card>
+</CardGroup>

@@ -5,6 +5,16 @@ description: "Native Android capture for rial — v0.10.1."
 
 Native Android capture for rial — the SDK takes the photo, signs it with device signals (hardware attestation, location) and submits it for verification.
 
+## Requirements
+
+| | |
+| --- | --- |
+| **minSdk** | 24 |
+| **compileSdk** | 34 |
+| **Kotlin** | 1.9.22 (AGP 8.2.1) |
+| **Java/Kotlin target** | 17 |
+| **Compose** | Only if you use `com.getrial:sdk` or `sdk-ui` — `sdk-core` has no Compose dependency. |
+
 ## Install
 
 <CodeGroup>
@@ -74,6 +84,47 @@ val camera = RialCameraView(context).apply {
 // bytes you already have (weaker proof): Rial.capture().capture(jpegBytes)
 ```
 
+## Offline & durability
+
+The SDK is built to survive a flaky connection and a killed process, not just a happy path.
+
+**Template flow.** Once a photo is captured, submitting it is a durable job: the complete submission intent (token, snapshots, answers) is persisted to disk *before* WorkManager takes ownership of it — so a job that's merely serialized but never scheduled doesn't count as saved. A transient failure (a `5xx`, no network) returns WorkManager's `retry` and keeps the job; the app can be killed and reopened mid-upload and the submission resumes where it left off. Only a terminal outcome — success, or a non-retryable rejection — clears the durable job and its JPEG together.
+
+**Camera-only path.** If the device is offline at capture time, `RialClient.capture(...)` hands the work to the same offline queue instead of failing: see `RialResult` below.
+
+## Error handling
+
+**`RialResult`** — returned by `RialClient.capture(...)`:
+
+```kotlin
+data class RialResult(
+    val captureId: String?,
+    val queued: Boolean = false,
+    val queueId: String? = null,
+)
+```
+
+Usually `captureId` is the server-assigned id. If the device was offline at capture time, the upload was handed to the offline queue instead: `queued` is `true`, `captureId` is `null` (the server assigns one once the queued upload completes), and `queueId` is the WorkManager work id — observe it (e.g. `WorkManager.getWorkInfoByIdFlow`) to drive a UI badge from "pending" to "uploaded."
+
+**`FlowOutcome`** — returned by `Rial.openFlow(...)` / `RialFlowClient.open(...)` when opening a template link:
+
+```kotlin
+sealed interface FlowOutcome {
+    data class Ready(val session: RialFlowSession) : FlowOutcome
+    data class Unavailable(val reason: Reason) : FlowOutcome
+
+    enum class Reason { NotFound, Expired, AlreadyUsed, Transport }
+}
+```
+
+`NotFound` covers a link that's missing, still a draft, paused, or out of capacity — the server doesn't distinguish these to the outside on purpose, so the SDK doesn't invent a distinction either. `Expired` is a verification past its `expires_at`. `AlreadyUsed` means it's already `completed` — nothing left to capture. `Transport` is a network failure or a response the SDK couldn't parse.
+
+## Testing against staging
+
+```kotlin
+Rial.configure(this, publishableKey = "pk_test_…", environment = RialEnvironment.Staging)
+```
+
 ## Modules
 
 | Module | Contains |
@@ -85,9 +136,13 @@ val camera = RialCameraView(context).apply {
 
 Dependencies run in one direction: `ui → flow → core`.
 
-## Links
+## Next steps
 
 <CardGroup cols={2}>
-  <Card title="GitHub repository" icon="github" href="https://github.com/Rial-ventures-Inc/rial-kotlin" />
-  <Card title="Releases" icon="tag" href="https://github.com/Rial-ventures-Inc/rial-kotlin/releases" />
+  <Card title="Authentication" icon="key" href="/authentication">
+    Environments, and how `publishableKey` fits alongside the secret key.
+  </Card>
+  <Card title="Verdicts" icon="badge-check" href="/verdicts">
+    What the verification you just captured against will come back with.
+  </Card>
 </CardGroup>

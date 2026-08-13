@@ -1,0 +1,108 @@
+---
+title: "Verdicts"
+description: "How a verification's status and verdict are built, and what each signal means."
+---
+
+Every verification carries two things: a lifecycle `status`, and — once analysis finishes — a `verdict` built from the signals evaluated against the capture.
+
+## Status
+
+```
+pending → partially_captured → completed | expired | failed
+```
+
+`pending` flips to `partially_captured` on the first capture. Analysis runs once the required captures are in, sets the verdict, and moves the verification to `completed`. `completed`, `expired`, and `failed` are terminal. A verification can also side-branch to `abandoned` from `pending` or `partially_captured` if the end-user leaves before finishing — that's not terminal either: a later capture resurrects it back to `partially_captured`.
+
+<Note>
+  If `GET /v1/verifications/:id` doesn't contain a `verdict` object yet, analysis is still processing — poll again, or configure `webhook_url` at creation time and let rial notify you instead.
+</Note>
+
+## The verdict
+
+```json
+{
+  "status": "completed",
+  "verdict": {
+    "label": "suspicious",
+    "score": 0.82,
+    "signals": {
+      "screen_detection": { "screen_detected": true, "confidence": 0.94 },
+      "ai_detection": { "label": "likely_human", "confidence": 0.88 },
+      "reverse_search": { "found_online": false, "match_count": 0 },
+      "depth": { "status": "not_applicable", "reason": "uploaded_content" }
+    },
+    "reason_code": "screen_detected"
+  }
+}
+```
+
+- **`label`** — `verified`, `suspicious`, or `failed`. The one-word bucket most integrations branch on.
+- **`score`** — confidence in the verdict, `0`–`1`.
+- **`signals`** — the per-signal evidence behind the label (table below).
+- **`reason_code`** — which signal drove a non-`verified` label. Absent when `label` is `verified`. When more than one signal tripped, `reason_code` reflects a fixed priority: `screen_detected` > `ai_generated` > `context_mismatch` > `reverse_search_match` > `depth_anomaly`.
+
+A simpler, share-safe projection is available at `GET /v1/verifications/:id/public` (the certificate page) — it exposes only `verdict.label`, none of the underlying signal detail.
+
+## Signals
+
+Each key under `signals` is either its evaluated shape, or `{ "status": "not_applicable", "reason": "uploaded_content" }` when that slot was never evaluated — because the content behind it was uploaded (an `upload`-type capture step, or an Audit-mode verification) rather than captured live. A `not_applicable` signal is never treated as a failure.
+
+| Signal | Checks | Shape when evaluated |
+| --- | --- | --- |
+| `screen_detection` | Whether the capture is a photo of a screen — a recapture — rather than the real thing in front of the camera. | `{ screen_detected: boolean, confidence: 0–1 }` |
+| `ai_detection` | Whether the image looks AI-generated. | `{ label: "likely_human" \| "likely_ai" \| "unknown", confidence: 0–1 }` |
+| `reverse_search` | Whether this image (or a close match) has already been found elsewhere online. | `{ found_online: boolean, match_count: integer }` |
+| `depth` | Depth-sensor evidence backing the capture, when the device has one to offer. | `{ source: string, confidence: 0–1 }` |
+
+Signals are requested per verification via `signals_required` at creation time (`screen`, `ai`, `reverse`, `context`, `depth`).
+
+## Independent checks
+
+Three more checks can attach to a verification, each activated by an optional field at creation time. None of them affect `verdict.label` — they answer a different question and are reported separately.
+
+**`object_match`** — set `expected_object` (a free-text description, e.g. `"blue Ford Focus"`) to activate it:
+
+```json
+"object_match": { "status": "match" | "mismatch" | "inconclusive", "expected_object": "blue Ford Focus" }
+```
+
+`inconclusive` means the image didn't allow a reliable determination — treat it as "no evidence either way," not as a failure.
+
+**`condition`** — set `condition_aspects` (1–6 free-form, tenant-defined aspect names, any language) to activate it:
+
+```json
+"condition": {
+  "score": 7.8,
+  "label": "good",
+  "aspects": [
+    { "name": "paint", "score": 8.0, "reasoning": "One-or-two-sentence visual justification." }
+  ]
+}
+```
+
+`score` is the one-decimal average of the aspect scores (0–10); `label` buckets it (`good` at ≥7.5, `fair` at ≥5, otherwise `poor`).
+
+**`location_match`** — set `expected_location` (a street address) to activate presence verification: each capture's device GPS is compared against the declared address.
+
+```json
+"location_match": {
+  "status": "verified",
+  "expected_location": "Av. Córdoba 5635, CABA",
+  "observed_location": "Palermo, Buenos Aires, Argentina",
+  "expected_point": { "lat": -34.5946, "lng": -58.4438 },
+  "observed_point": { "lat": -34.5947, "lng": -58.4440 },
+  "distance_m": 23
+}
+```
+
+`verified` — the capture happened at the declared address, within GPS tolerance. `no_match` — the device was somewhere else. `ungeocoded` — the address couldn't be resolved to a point, or the capture carried no GPS; no comparison was possible. `rejected` — the device reported a mock/simulated location.
+
+## Deterministic at capture, confidence after the fact
+
+A capture-time `verdict` is a single decision: one `label`, computed once a verification's required signals are in. It doesn't get walked back later.
+
+Case Analysis — the optional deeper pass you trigger with `POST /v1/verifications/:id/finalize` and a claimant narrative — is a different, explicitly probabilistic layer on top: it scores multiple dimensions from `0` to `1` with supporting evidence, reports its own `confidence`, lists `uncertainty_areas`, and buckets a `review_priority` (`low`/`medium`/`high`). It's built to help a human reviewer weigh a case, not to re-decide the verdict.
+
+<Card title="Next: the Kotlin SDK" icon="android" href="/sdks/kotlin" horizontal>
+  Capture natively on Android — camera, templates, and the offline queue.
+</Card>

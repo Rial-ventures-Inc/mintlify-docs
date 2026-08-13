@@ -1,0 +1,50 @@
+---
+title: "Authentication"
+description: "The two key types, and which environment to use them against."
+---
+
+rial has two kinds of API key, and where each one is allowed to live is the whole point — the same split Stripe uses between a secret key and a publishable key.
+
+| Key | Format | Lives | Used for |
+| --- | --- | --- | --- |
+| Secret key | `rk_secret_…` | Server-side only | Full tenant/management access — never ships in an app or a browser. |
+| Publishable key | `pk_live_…` / `pk_test_…` | Server-side **or** embedded client-side | Minting and reading verifications from your backend, and authenticating the mobile SDKs (Kotlin today; Swift and React Native are on the way). |
+
+<Warning>
+  Secret keys (`rk_secret_…`) must be kept confidential and used exclusively within server-side environments. Never expose these tokens in client-side applications, mobile codebases, or browsers.
+</Warning>
+
+A rial operator mints your keys today — `pk_` keys are minted per tenant, plaintext returned once at mint time; only a hash is stored afterwards. If you're integrating and don't have one yet, ask your rial contact.
+
+## Making a request
+
+Server-to-server calls (`POST /v1/verifications`, `GET /v1/verifications/:id`, …) send the key as a bearer token:
+
+```
+Authorization: Bearer pk_live_01HXYZABCDEFGHJKMNPQRSTVWX
+```
+
+A key that fails to match is rejected with `401` — there's no separate "invalid format" response to distinguish a typo from a revoked key.
+
+## The Kotlin SDK's `publishableKey`
+
+The same `pk_live_…` / `pk_test_…` key is what you pass into the Kotlin SDK client-side, embedded in the app:
+
+```kotlin
+Rial.configure(this, publishableKey = "pk_live_…")
+```
+
+It authenticates the SDK's own capture endpoints (upload URL, capture submit, answers) the same way — `Authorization: Bearer pk_test_…` against Staging, `pk_live_…` against Production. It's the same tenant-scoped key type your backend can use to call the Verifications API directly; the difference is where it's allowed to live. Treat `pk_live_…` as safe to embed in a shipped app the way you'd treat any publishable key — it identifies your tenant, it isn't a secret that grants account-management access.
+
+## Environments
+
+| Environment | Base URL | Notes |
+| --- | --- | --- |
+| Staging | `https://platform-staging.get-rial.com` | Safe to hit while integrating. |
+| Production | `https://platform.get-rial.com` | Live tenant traffic — don't test against it. |
+
+The capture link you hand your end-user needs no key at all: possession of the verification id in the URL *is* the credential for the capture flow (same trust model as a Stripe payment-intent `client_secret`) — see the [API reference](/api-reference) for the full set of auth modes, including the dashboard session cookie and the signed-request mode used by rial's own integrations.
+
+<Card title="Next: how a verdict is built" icon="badge-check" href="/verdicts" horizontal>
+  What `status` and `verdict` mean, and what each fraud signal checks.
+</Card>
