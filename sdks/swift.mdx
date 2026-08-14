@@ -1,8 +1,172 @@
 ---
 title: "Swift SDK"
-description: "Native iOS capture for rial — coming soon."
+description: "Native iOS capture for rial — v0.10.0."
 ---
 
-Coming soon. The Swift SDK will bring native iOS capture, backed by App Attest and the Secure Enclave for hardware attestation and LiDAR depth as an additional on-device signal. It's being built against the same capture-flow contract as the Kotlin SDK — the same states, the same server-driven template steps — so a template that renders correctly on Android renders the same way on iOS.
+Native iOS capture for rial — the SDK takes the photo, signs it with device signals (App Attest via the Secure Enclave, LiDAR/lens depth, location) and submits it for verification. `0.10.0` aligns with the Kotlin SDK's `0.10.x` line — same feature surface, same flow contract.
 
-The [REST API](/quickstart) works from any backend today, so you can integrate server-side while the native SDK is in development.
+## Requirements
+
+| | |
+| --- | --- |
+| **iOS** | 15+ — the supported platform (camera, App Attest, depth). |
+| **macOS** | 12+ — only so the Foundation-only core (networking, coordinator, signal ports) can be unit-tested with `swift test` on a dev Mac. Not a supported target for shipping apps. |
+| **Swift tools version** | 5.9 |
+| **UI** | SwiftUI (`RialTemplateFlowView`, `RialCameraView`) or UIKit (`RialCaptureViewController`) — pick either. |
+
+## Install
+
+<CodeGroup>
+```swift Package.swift
+dependencies: [
+    .package(url: "https://github.com/Rial-ventures-Inc/rial-swift.git", from: "0.10.0")
+]
+```
+```swift Package.swift (target)
+.target(
+    name: "YourApp",
+    dependencies: [
+        .product(name: "RialSDK", package: "rial-swift")
+    ]
+)
+```
+</CodeGroup>
+
+<Note>
+  **Access.** The SDK is in beta and its repository is private — ask your rial contact for access to `rial-swift`. Once your GitHub account has it, Xcode/SwiftPM resolves the package using that account's credentials: sign in under **Xcode → Settings → Accounts** with a GitHub account that has access, or use an `ssh://` form of the URL if you authenticate with SSH keys instead.
+
+  Public distribution is planned — this step disappears then.
+</Note>
+
+Unlike Android's manifest merger, iOS doesn't merge permission declarations for you — add these to your app's `Info.plist` yourself: `NSCameraUsageDescription` (required) and `NSLocationWhenInUseUsageDescription` (for the location signal).
+
+## Configure once
+
+Call this once at app launch (e.g. from `application(_:didFinishLaunchingWithOptions:)`):
+
+```swift
+RialSDK.configure(publishableKey: "pk_live_…")
+// staging for testing: RialSDK.configure(publishableKey: "pk_test_…", environment: .staging)
+```
+
+## Template flow (turnkey)
+
+The org and template slugs come from the template link published in the dashboard (`/l/{org}/{template}`):
+
+```swift
+switch await RialSDK.openFlow(orgSlug: "acme", templateSlug: "inspeccion") {
+case .ready(let session):
+    RialTemplateFlowView(session: session)
+case .unavailable(let reason):
+    // .notFound / .expired / .alreadyUsed / .transport
+    MessageView(reason)
+}
+```
+
+This renders the complete flow: typed steps, the tenant's branding, camera, review, and a durable submit backed by the same file-backed offline queue as the camera-only path. The same template renders the same way on Android — the flow's truth lives in the server contract, not in either platform.
+
+## Camera only (bring your own UI)
+
+Turnkey, UIKit — the SDK presents its own capture screen and hands back a result:
+
+```swift
+RialSDK.presentCapture(from: self) { result in
+    switch result {
+    case .success(let r): print("capture", r.captureId ?? r.queueId)
+    case .failure(let e): print("rial error", e)
+    }
+}
+```
+
+Embedded, SwiftUI — you own the layout, the SDK still owns the `AVCaptureSession`:
+
+```swift
+@StateObject private var camera = RialCamera()
+
+var body: some View {
+    RialCameraView(camera).ignoresSafeArea()
+    Button("Capture") { Task { let result = await camera.capture() } }
+}
+// bytes you already have (weaker proof): await RialSDK.capture(jpeg: jpegData, token: token)
+```
+
+## Offline & durability
+
+The SDK is built to survive a flaky connection and a killed process, not just a happy path. Omit `token` from `capture(...)` (the easy path) and it returns immediately with `queued == true` and a `queueId` — the JPEG is durably persisted to disk and uploaded in the background with retry, dedupe by a deterministic idempotency key. Call `RialSDK.retryPending()` on foreground / connectivity regained to nudge the runner (it also runs automatically on `configure` and after each queued capture). Track progress with `RialSDK.status(queueId:)`.
+
+## Error handling
+
+**`RialCaptureResult`** — returned by `capture(...)`:
+
+```swift
+public struct RialCaptureResult: Equatable, Sendable {
+    public let captureId: String?       // nil until a queued upload lands
+    public let queued: Bool
+    public let queueId: String?         // observe via RialSDK.status(queueId:)
+    public let verificationId: String?
+    public let attestation: String?
+    public let capturedAt: Date
+}
+```
+
+**`FlowOutcome`** — returned by `RialSDK.openFlow(...)`:
+
+```swift
+public enum FlowOutcome: Sendable {
+    case ready(RialFlowSession)
+    case unavailable(Reason)
+
+    public enum Reason: Sendable {
+        case notFound      // missing, draft, paused, or out of capacity
+        case expired       // past the verification's expires_at
+        case alreadyUsed   // already completed — nothing left to capture
+        case transport     // network failure or an unparseable response
+    }
+}
+```
+
+`notFound` deliberately covers several server-side states at once — the server doesn't distinguish them to the outside, so the SDK doesn't invent a distinction either.
+
+## Testing your integration
+
+```swift
+RialSDK.configure(publishableKey: "pk_test_…", environment: .staging)
+```
+
+Both the turnkey camera and the turnkey template flow expose stable, public accessibility identifiers so an integrator's XCUITest suite can drive the flow without depending on copy or layout:
+
+| Identifier | Value |
+| --- | --- |
+| `RialAccessibilityIdentifier.shutter` | `rial.capture.shutter` |
+| `RialAccessibilityIdentifier.cancel` | `rial.capture.cancel` |
+| `RialAccessibilityIdentifier.preview` | `rial.capture.preview` |
+| `RialTemplateAnchor.screen` | `tpl.screen` |
+| `RialTemplateAnchor.brandName` | `tpl.brand.name` |
+| `RialTemplateAnchor.stepCounter` | `tpl.step.counter` |
+| `RialTemplateAnchor.stepInstruction` | `tpl.step.instruction` |
+| `RialTemplateAnchor.textInput` / `.textSubmit` | `tpl.text.input` / `tpl.text.submit` |
+| `RialTemplateAnchor.shotCounter` / `.shutter` | `tpl.shot.counter` / `tpl.shutter` |
+| `RialTemplateAnchor.imageAdvance` | `tpl.image.advance` |
+| `RialTemplateAnchor.review` / `.reviewSubmit` | `tpl.review` / `tpl.review.submit` |
+| `RialTemplateAnchor.uploading` / `.uploadError` / `.uploadRetry` | `tpl.uploading` / `tpl.upload.error` / `tpl.upload.retry` |
+| `RialTemplateAnchor.success` | `tpl.success` |
+
+These values match the Android SDK's identifiers one for one, so a single test plan can describe the flow once and drive it on both platforms.
+
+## Known limits
+
+- **App Attest requires an entitlement and a real device.** On a re-signed binary (a device farm) or the Simulator, the Secure Enclave can't validate the attestation and it comes back `skipped` — the capture still completes normally. This is expected, not a bug.
+- **Template submit requires `RialSDK.configure()` to have run first** — there's no fallback path without it.
+
+See the [0.10.0 release notes](https://github.com/Rial-ventures-Inc/rial-swift/releases/tag/v0.10.0) for the complete changelog.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/authentication">
+    Environments, and how `publishableKey` fits alongside the secret key.
+  </Card>
+  <Card title="Verdicts" icon="badge-check" href="/verdicts">
+    What the verification you just captured against will come back with.
+  </Card>
+</CardGroup>
