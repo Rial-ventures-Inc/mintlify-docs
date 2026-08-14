@@ -1,11 +1,26 @@
 ---
 title: "Verdicts"
-description: "How a verification's status and verdict are built, and what each signal means."
+description: "How Verifications and Audit each produce a verdict, and what to read from it."
 ---
 
-Every verification carries two things: a lifecycle `status`, and — once analysis finishes — a `verdict` built from the signals evaluated against the capture.
+Every rial verdict answers one question: can you trust this photo. What you branch on is `label` — and, when it isn't `verified`, `reason_code` for which signal tripped it. That's it for most integrations.
 
-## Status
+rial ships that answer through two separate products, and they are not interchangeable:
+
+<CardGroup cols={2}>
+  <Card title="Verifications" icon="camera">
+    A photo captured live, on-device, right now — via the SDK or a hosted capture link. The verdict is deterministic: computed once, at the moment of capture, from signals a live device can attest to.
+  </Card>
+  <Card title="Audit" icon="upload">
+    A photo that already exists, pushed to rial after the fact via the API. There's no controlled capture behind it, so there's no cryptographic proof — Audit returns probabilistic signals with confidence, not a certainty.
+  </Card>
+</CardGroup>
+
+Confusing the two is the most expensive mistake an integration can make — see [The distinction](#the-distinction) below.
+
+## Verifications — deterministic at capture
+
+This is the core product: the SDK or the hosted capture page walks your end-user through a live photo capture, and rial evaluates it on the spot.
 
 ```
 pending → partially_captured → completed | expired | failed
@@ -17,7 +32,7 @@ pending → partially_captured → completed | expired | failed
   If `GET /v1/verifications/:id` doesn't contain a `verdict` object yet, analysis is still processing — poll again, or configure `webhook_url` at creation time and let rial notify you instead.
 </Note>
 
-## The verdict
+### The verdict
 
 ```json
 {
@@ -36,16 +51,16 @@ pending → partially_captured → completed | expired | failed
 }
 ```
 
-- **`label`** — `verified`, `suspicious`, or `failed`. The one-word bucket most integrations branch on.
-- **`score`** — confidence in the verdict, `0`–`1`.
-- **`signals`** — the per-signal evidence behind the label (table below).
+- **`label`** — `verified`, `suspicious`, or `failed`. This is what almost every integration should branch on.
 - **`reason_code`** — which signal drove a non-`verified` label. Absent when `label` is `verified`. When more than one signal tripped, `reason_code` reflects a fixed priority: `screen_detected` > `ai_generated` > `context_mismatch` > `reverse_search_match` > `depth_anomaly`.
+- **`signals`** — the per-signal evidence behind the label (table below). Useful for building your own review UI; not something most integrations need to branch on directly.
+- **`score`** — the pipeline's internal confidence in the verdict, `0`–`1`. It's detail behind `label`, not a second decision to make: branch on `label` and `reason_code`, and treat `score` as something you display, not something you set your own pass/fail threshold against.
 
-A simpler, share-safe projection is available at `GET /v1/verifications/:id/public` (the certificate page) — it exposes only `verdict.label`, none of the underlying signal detail.
+A simpler, share-safe projection is available at `GET /v1/verifications/:id/public` (the certificate page) — it exposes only `verdict.label`, none of the underlying signal detail or score.
 
-## Signals
+### Signals
 
-Each key under `signals` is either its evaluated shape, or `{ "status": "not_applicable", "reason": "uploaded_content" }` when that slot was never evaluated — because the content behind it was uploaded (an `upload`-type capture step, or an Audit-mode verification) rather than captured live. A `not_applicable` signal is never treated as a failure.
+Each key under `signals` is either its evaluated shape, or `{ "status": "not_applicable", "reason": "uploaded_content" }` when that particular slot's content was uploaded rather than captured live by a device — either because it filled an `upload`-type step, or because the verification is running in Audit mode (see below). A `not_applicable` signal is never treated as a failure.
 
 | Signal | Checks | Shape when evaluated |
 | --- | --- | --- |
@@ -56,7 +71,7 @@ Each key under `signals` is either its evaluated shape, or `{ "status": "not_app
 
 Signals are requested per verification via `signals_required` at creation time (`screen`, `ai`, `reverse`, `context`, `depth`).
 
-## Independent checks
+### Independent checks
 
 Three more checks can attach to a verification, each activated by an optional field at creation time. None of them affect `verdict.label` — they answer a different question and are reported separately.
 
@@ -82,7 +97,7 @@ Three more checks can attach to a verification, each activated by an optional fi
 
 `score` is the one-decimal average of the aspect scores (0–10); `label` buckets it (`good` at ≥7.5, `fair` at ≥5, otherwise `poor`).
 
-**`location_match`** — set `expected_location` (a street address) to activate presence verification: each capture's device GPS is compared against the declared address.
+**`location_match`** — set `expected_location` (a street address) to activate presence verification: each capture's device GPS is compared against the declared address. This one is specific to Verifications — it depends on live device GPS, which an uploaded Audit photo never carries.
 
 ```json
 "location_match": {
@@ -97,11 +112,56 @@ Three more checks can attach to a verification, each activated by an optional fi
 
 `verified` — the capture happened at the declared address, within GPS tolerance. `no_match` — the device was somewhere else. `ungeocoded` — the address couldn't be resolved to a point, or the capture carried no GPS; no comparison was possible. `rejected` — the device reported a mock/simulated location.
 
-## Deterministic at capture, confidence after the fact
+## Audit — post-capture, probabilistic
 
-A capture-time `verdict` is a single decision: one `label`, computed once a verification's required signals are in. It doesn't get walked back later.
+Audit is for photos you already have — evidence pushed to rial via the API rather than captured live through the SDK or a capture link. It runs on the same `/v1/verifications` resource as Verifications, distinguished by `mode: "audit"` at creation time:
 
-Case Analysis — the optional deeper pass you trigger with `POST /v1/verifications/:id/finalize` and a claimant narrative — is a different, explicitly probabilistic layer on top: it scores multiple dimensions from `0` to `1` with supporting evidence, reports its own `confidence`, lists `uncertainty_areas`, and buckets a `review_priority` (`low`/`medium`/`high`). It's built to help a human reviewer weigh a case, not to re-decide the verdict.
+```json
+{ "mode": "audit", "signals_required": ["ai", "reverse"], "metadata": { "case_id": "CLM-9912" } }
+```
+
+An audited file still fills an ordinary `image` step (the same `steps` spec Verifications uses) — it just arrives through the upload flow instead of a device camera:
+
+```
+POST /v1/verifications                            → id (token), mode: "audit"
+POST /v1/verifications/:token/captures/upload-url → upload_url + image_key
+PUT  {upload_url}                                  (raw image bytes)
+POST /v1/verifications/:token/captures             → { image_key, image_sha256 } — registers the file, runs analysis
+GET  /v1/verifications/:id                          → poll until status is "completed"
+```
+
+<Warning>
+  Audit has no separate wire shape — it returns the exact same `Verdict` object as Verifications (`label`, `score`, `signals`, `reason_code`). The difference is what feeds it: there was no live device to attest to the capture, so any signal whose evidence came from an upload reports `{ "status": "not_applicable", "reason": "uploaded_content" }` instead of an evaluated result, per the same rule described above. The spec doesn't spell out, per signal, exactly which ones fall back this way on a given Audit run — don't assume a fixed set; read each signal's shape in the response rather than branching on which keys you expect to see evaluated.
+</Warning>
+
+```json
+{
+  "status": "completed",
+  "config": { "mode": "audit" },
+  "verdict": {
+    "label": "verified",
+    "score": 0.71,
+    "signals": {
+      "screen_detection": { "status": "not_applicable", "reason": "uploaded_content" },
+      "ai_detection": { "label": "likely_human", "confidence": 0.81 },
+      "reverse_search": { "found_online": false, "match_count": 0 },
+      "depth": { "status": "not_applicable", "reason": "uploaded_content" }
+    }
+  }
+}
+```
+
+`expected_location` / `location_match` isn't meaningful here either, for the same reason: it compares a capture's device GPS against a declared address, and an uploaded file carries no device GPS.
+
+## The distinction
+
+<Note>
+  rial is deterministic **at the moment of capture** — that's Verifications. Analysis over a photo that already exists — Audit — is necessarily probabilistic: no live device was there to attest to it, so what you get back is signals with confidence, not a cryptographic verdict. Treat an Audit `label` as a strong signal to weigh, not as the same kind of proof a Verifications `label` is.
+</Note>
+
+## Case Analysis — optional deeper pass
+
+`POST /v1/verifications/:id/finalize` attaches a claimant `narrative` and triggers a separate, explicitly probabilistic layer on top of either product: it scores multiple dimensions from `0` to `1` with supporting evidence, reports its own `confidence`, lists `uncertainty_areas`, and buckets a `review_priority` (`low`/`medium`/`high`). It's built to help a human reviewer weigh a case, not to re-decide `verdict.label` — the capture-time or Audit verdict it ran on doesn't get walked back.
 
 <Card title="Next: the Kotlin SDK" icon="android" href="/sdks/kotlin" horizontal>
   Capture natively on Android — camera, templates, and the offline queue.
