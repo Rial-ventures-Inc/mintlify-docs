@@ -43,11 +43,40 @@ No credentials, no account, no access request — the repository is open. The SD
 
 Permissions (`CAMERA`, `INTERNET`, location) are contributed by the SDK's own manifest via the manifest merger — there's nothing to declare yourself. Each module also ships its own R8 consumer rules, so integrating the SDK doesn't require writing any ProGuard/R8 rules of your own.
 
+<Note>
+`gradle.properties` needs `android.useAndroidX=true` — standard on any modern Android project, but worth checking if your app started from an older template.
+</Note>
+
+### Compose setup (`sdk` / `sdk-ui` only)
+
+`com.getrial:sdk` and `sdk-ui` render their screens with Compose, but the SDK only brings Compose in at runtime scope — your app module still needs Compose enabled and its own Compose dependencies:
+
+```groovy build.gradle (app module)
+android {
+    buildFeatures {
+        compose true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion '1.5.10' // matches Kotlin 1.9.22 / AGP 8.2.1
+    }
+}
+
+dependencies {
+    implementation platform('androidx.compose:compose-bom:2024.02.02')
+    implementation 'androidx.activity:activity-compose:1.8.2'
+}
+```
+
+`sdk-core` (camera only) needs none of this.
+
 ## Configure once
 
-Call this from your `Application.onCreate`:
+Call this from your `Application.onCreate`. All SDK types live under `com.getrial.sdk` (and subpackages) — import from there:
 
 ```kotlin
+import com.getrial.sdk.Rial
+import com.getrial.sdk.RialEnvironment
+
 Rial.configure(this, publishableKey = "pk_live_…")
 // staging for testing: Rial.configure(this, publishableKey = "pk_test_…", environment = RialEnvironment.Staging)
 ```
@@ -57,16 +86,34 @@ Rial.configure(this, publishableKey = "pk_live_…")
 The org and template slugs come from the template link published in the dashboard (`/l/{org}/{template}`):
 
 ```kotlin
-Rial.templateFlow(orgSlug = "acme", templateSlug = "inspeccion", activity = this)
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import com.getrial.sdk.Rial
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            Rial.templateFlow(orgSlug = "acme", templateSlug = "inspeccion", activity = this@MainActivity)
+        }
+    }
+}
 ```
+
+<Note>
+`Rial.templateFlow(...)` is `@Composable` — call it from inside `setContent { }` (or another Compose hierarchy), not as a plain statement in `onCreate`.
+</Note>
 
 This renders the complete flow: typed steps, the tenant's branding, camera, review, and a durable submit backed by WorkManager — offline retries, and it resumes after the process is killed. Rotations are survived by reusing the same verification instead of starting over.
 
-For finer control, combine `Rial.openFlow(...)` with `RialTemplateFlow(outcome.session, activity)`.
+For finer control, combine `Rial.openFlow(...)` with `RialTemplateFlow(outcome.session, activity)` inside `setContent { }` — `RialTemplateFlow` is `@Composable` too.
 
 ## Camera only (bring your own UI)
 
 ```kotlin
+import com.getrial.sdk.RialCameraView
+
 val camera = RialCameraView(context).apply {
     onCaptured = { result -> /* result.captureId */ }
     onError = { e -> /* … */ }
@@ -75,6 +122,10 @@ val camera = RialCameraView(context).apply {
 // custom shutter: showShutter = false + camera.capture()
 // bytes you already have (weaker proof): Rial.capture().capture(jpegBytes)
 ```
+
+<Note>
+`camera.capture()` and `Rial.capture().capture(jpegBytes)` are `suspend` — call them from a coroutine, e.g. `lifecycleScope.launch { camera.capture() }`.
+</Note>
 
 ## Offline & durability
 
