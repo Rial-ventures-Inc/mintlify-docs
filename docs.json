@@ -35,6 +35,10 @@
       {
         "group": "API reference",
         "openapi": "api-reference/openapi.json"
+      },
+      {
+        "group": "Legal",
+        "pages": ["legal/sdk-license"]
       }
     ]
   },

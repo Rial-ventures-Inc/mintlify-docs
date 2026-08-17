@@ -1,9 +1,9 @@
 ---
 title: "Swift SDK"
-description: "Native iOS capture for rial — v0.10.0."
+description: "Native iOS capture for rial — v0.10.2."
 ---
 
-Native iOS capture for rial — the SDK takes the photo, signs it with device signals (App Attest via the Secure Enclave, LiDAR/lens depth, location) and submits it for verification. `0.10.0` aligns with the Kotlin SDK's `0.10.x` line — same feature surface, same flow contract.
+Native iOS capture for rial — the SDK takes the photo, signs it with device signals (App Attest via the Secure Enclave, LiDAR/lens depth, location) and submits it for verification. `0.10.2` aligns with the Kotlin SDK's `0.10.x` line — same feature surface, same flow contract.
 
 ## Requirements
 
@@ -19,24 +19,20 @@ Native iOS capture for rial — the SDK takes the photo, signs it with device si
 <CodeGroup>
 ```swift Package.swift
 dependencies: [
-    .package(url: "https://github.com/Rial-ventures-Inc/rial-swift.git", from: "0.10.0")
+    .package(url: "https://github.com/Rial-ventures-Inc/rial-swift-package.git", from: "0.10.2")
 ]
 ```
 ```swift Package.swift (target)
 .target(
     name: "YourApp",
     dependencies: [
-        .product(name: "RialSDK", package: "rial-swift")
+        .product(name: "RialSDK", package: "rial-swift-package")
     ]
 )
 ```
 </CodeGroup>
 
-<Note>
-  **Access.** The SDK is in beta and its repository is private — ask your rial contact for access to `rial-swift`. Once your GitHub account has it, Xcode/SwiftPM resolves the package using that account's credentials: sign in under **Xcode → Settings → Accounts** with a GitHub account that has access, or use an `ssh://` form of the URL if you authenticate with SSH keys instead.
-
-  Public distribution is planned — this step disappears then.
-</Note>
+The package is a public SwiftPM manifest wrapping a precompiled XCFramework (device + simulator slices) — no GitHub account, no repository access, and no credentials needed to resolve it. The SDK ships as a compiled, obfuscated binary under a proprietary license — see [SDK license](/legal/sdk-license).
 
 Unlike Android's manifest merger, iOS doesn't merge permission declarations for you — add these to your app's `Info.plist` yourself: `NSCameraUsageDescription` (required) and `NSLocationWhenInUseUsageDescription` (for the location signal).
 
@@ -158,7 +154,7 @@ These values match the Android SDK's identifiers one for one, so a single test p
 - **App Attest requires an entitlement and a real device.** On a re-signed binary (a device farm) or the Simulator, the Secure Enclave can't validate the attestation and it comes back `skipped` — the capture still completes normally. This is expected, not a bug.
 - **Template submit requires `RialSDK.configure()` to have run first** — there's no fallback path without it.
 
-See the [0.10.0 release notes](https://github.com/Rial-ventures-Inc/rial-swift/releases/tag/v0.10.0) for the complete changelog.
+See the [0.10.2 release notes](https://github.com/Rial-ventures-Inc/rial-swift-package/releases/tag/v0.10.2) for the complete changelog.
 
 ## Next steps
 

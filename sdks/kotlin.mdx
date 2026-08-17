@@ -1,6 +1,6 @@
 ---
 title: "Kotlin SDK"
-description: "Native Android capture for rial — v0.10.1."
+description: "Native Android capture for rial — v0.10.2."
 ---
 
 Native Android capture for rial — the SDK takes the photo, signs it with device signals (hardware attestation, location) and submits it for verification.
@@ -17,37 +17,29 @@ Native Android capture for rial — the SDK takes the photo, signs it with devic
 
 ## Install
 
+Add rial's own Maven repository alongside `google()` and `mavenCentral()`:
+
+```groovy settings.gradle
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://maven.get-rial.com' }
+    }
+}
+```
+
+Then declare the dependency:
+
 <CodeGroup>
 ```groovy build.gradle
-implementation 'com.getrial:sdk:0.10.1'          // camera + template flow (Compose)
+implementation 'com.getrial:sdk:0.10.2'          // camera + template flow (Compose)
 // or, camera-only without Compose:
-implementation 'com.getrial:sdk-core:0.10.1'
+implementation 'com.getrial:sdk-core:0.10.2'
 ```
 </CodeGroup>
 
-<Note>
-  **Access.** Published to GitHub Packages. The repository is private — you'll need a PAT with `read:packages` scope from a GitHub account that has access to `rial-kotlin`. Ask your rial contact for access.
-
-  ```groovy settings.gradle
-  dependencyResolutionManagement {
-      repositories {
-          google()
-          mavenCentral()
-          maven {
-              url 'https://maven.pkg.github.com/Rial-ventures-Inc/rial-kotlin'
-              credentials {
-                  username = providers.gradleProperty('gpr.user').orNull
-                  password = providers.gradleProperty('gpr.token').orNull
-              }
-          }
-      }
-  }
-  ```
-
-  Set `gpr.user` and `gpr.token` in `~/.gradle/gradle.properties` — never commit them.
-
-  Public distribution via Maven Central is planned — this step disappears then.
-</Note>
+No credentials, no account, no access request — the repository is open. The SDK ships as compiled, obfuscated binaries under a proprietary license — see [SDK license](/legal/sdk-license).
 
 Permissions (`CAMERA`, `INTERNET`, location) are contributed by the SDK's own manifest via the manifest merger — there's nothing to declare yourself. Each module also ships its own R8 consumer rules, so integrating the SDK doesn't require writing any ProGuard/R8 rules of your own.
 
