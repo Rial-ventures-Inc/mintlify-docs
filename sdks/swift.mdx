@@ -83,12 +83,24 @@ var body: some View {
     RialCameraView(camera).ignoresSafeArea()
     Button("Capture") { Task { let result = await camera.capture() } }
 }
-// bytes you already have (weaker proof): await RialSDK.capture(jpeg: jpegData, token: token)
+```
+
+Bytes you already have (weaker proof) — `capture(jpeg:token:)` is `async` and returns `Result<RialCaptureResult, RialError>`, so handle both cases:
+
+```swift
+Task {
+    switch await RialSDK.capture(jpeg: jpegData, token: token) {
+    case .success(let result):
+        print("capture", result.captureId ?? result.queueId)
+    case .failure(let error):
+        print("rial error", error)
+    }
+}
 ```
 
 ## Offline & durability
 
-The SDK is built to survive a flaky connection and a killed process, not just a happy path. Omit `token` from `capture(...)` (the easy path) and it returns immediately with `queued == true` and a `queueId` — the JPEG is durably persisted to disk and uploaded in the background with retry, dedupe by a deterministic idempotency key. Call `RialSDK.retryPending()` on foreground / connectivity regained to nudge the runner (it also runs automatically on `configure` and after each queued capture). Track progress with `RialSDK.status(queueId:)`.
+The SDK is built to survive a flaky connection and a killed process, not just a happy path. Omit `token` from `capture(...)` (the easy path) and it returns immediately with `queued == true` and a `queueId` — the JPEG is durably persisted to disk and uploaded in the background with retry, dedupe by a deterministic idempotency key. Call `await RialSDK.retryPending()` on foreground / connectivity regained to nudge the runner — wrap it in `Task { }` if you're not already in an async context (it also runs automatically on `configure` and after each queued capture). Track progress with `RialSDK.status(queueId:)`.
 
 ## Error handling
 
