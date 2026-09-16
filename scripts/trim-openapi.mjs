@@ -11,10 +11,19 @@ spec.info.title = 'rial API';
 spec.info.description = 'Prove a photo is real. Base URL: https://api.rial.io';
 spec.servers = [{ url: 'https://api.rial.io', description: 'Production' }];
 
+// Belt and braces: the platform already strips rial-internal auth from the
+// public document; never let it back into the docs copy.
+const PRIVATE = new Set(['cookieSession', 'botHmac']);
+for (const name of PRIVATE) delete spec.components?.securitySchemes?.[name];
+
 for (const ops of Object.values(spec.paths ?? {})) {
   for (const [method, op] of Object.entries(ops)) {
     if (!['get', 'post', 'put', 'patch', 'delete'].includes(method)) continue;
     if (op.description) op.description = first(op.description);
+    if (Array.isArray(op.security)) {
+      const kept = op.security.filter((r) => !Object.keys(r).some((n) => PRIVATE.has(n)));
+      op.security = kept.length === 0 && kept.length < op.security.length ? [{ bearerApiKey: [] }] : kept;
+    }
     for (const p of op.parameters ?? []) if (p.description) p.description = first(p.description);
     const body = op.requestBody?.description;
     if (body) op.requestBody.description = first(body);
