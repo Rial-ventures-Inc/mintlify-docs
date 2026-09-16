@@ -1,48 +1,10 @@
 ---
 title: "Swift SDK"
-description: "Capture inside your iOS app. v0.10.2"
+description: "Capture inside your iOS app."
 ---
 
-The SDK takes the photo, signs it with App Attest, depth and location, and submits it. Works offline; resumes if the app is killed.
+The Swift SDK takes the photo inside your app, signs it with App Attest, depth and location, and submits it. Works offline; resumes if the app is killed.
 
-## Install
+The SDK and its documentation are private. To get access, write to [ulises@rial.io](mailto:ulises@rial.io?subject=Swift%20SDK%20access) with your company and the app you're building. You'll get the package, the integration guide and a publishable key.
 
-```swift Package.swift
-.package(url: "https://github.com/Rial-ventures-Inc/rial-swift-package.git", from: "0.10.2")
-// product: "RialSDK"
-```
-
-iOS 15+, Swift 5.9. Add `NSCameraUsageDescription` and `NSLocationWhenInUseUsageDescription` to `Info.plist`. Compiled binary under the [SDK license](/legal/sdk-license).
-
-## Configure
-
-```swift
-RialSDK.configure(publishableKey: "pk_live_…")   // at launch
-```
-
-## Template flow
-
-```swift
-switch await RialSDK.openFlow(orgSlug: "acme", templateSlug: "inspection") {
-case .ready(let session): RialTemplateFlowView(session: session)
-case .unavailable(let reason): MessageView(reason)   // .notFound .expired .alreadyUsed .transport
-}
-```
-
-Same template, same screens as Android.
-
-## Camera only
-
-```swift
-RialSDK.presentCapture(from: self) { result in
-    // .success(r): r.captureId ?? r.queueId
-}
-```
-
-Or embed `RialCameraView(camera)` in SwiftUI and call `await camera.capture()`.
-
-## Testing
-
-App Attest needs a real device and the entitlement; on the Simulator it reports `skipped` and the capture still completes. Every screen exposes stable accessibility identifiers (`rial.capture.shutter`, `tpl.review.submit`, …) that match Android one for one.
-
-[Release notes](https://github.com/Rial-ventures-Inc/rial-swift-package/releases)
+Until then, the [REST API](/quickstart) works from any backend: same verdict, same capture link.

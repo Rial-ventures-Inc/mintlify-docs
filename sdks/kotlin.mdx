@@ -1,60 +1,10 @@
 ---
 title: "Kotlin SDK"
-description: "Capture inside your Android app. v0.10.2"
+description: "Capture inside your Android app."
 ---
 
-The SDK takes the photo, signs it with device signals and submits it. Works offline; resumes if the app is killed.
+The Kotlin SDK takes the photo inside your app, signs it with device signals and submits it. Works offline; resumes if the app is killed.
 
-## Install
+The SDK and its documentation are private. To get access, write to [ulises@rial.io](mailto:ulises@rial.io?subject=Kotlin%20SDK%20access) with your company and the app you're building. You'll get the package, the integration guide and a publishable key.
 
-```groovy settings.gradle
-maven { url 'https://maven.get-rial.com' }
-```
-
-```groovy build.gradle
-implementation 'com.getrial:sdk:0.10.2'        // camera + template flow (Compose)
-implementation 'com.getrial:sdk-core:0.10.2'   // camera only, no Compose
-```
-
-minSdk 24, Kotlin 1.9.22, Java 17. Permissions and R8 rules ship with the SDK. Compiled binaries under the [SDK license](/legal/sdk-license).
-
-## Configure
-
-```kotlin
-import com.getrial.sdk.Rial
-
-Rial.configure(this, publishableKey = "pk_live_…")   // Application.onCreate
-```
-
-## Template flow
-
-Publish a template in the dashboard, then render it:
-
-```kotlin
-setContent {
-    Rial.templateFlow(orgSlug = "acme", templateSlug = "inspection", activity = this)
-}
-```
-
-That's the whole flow: steps, your branding, camera, review, durable upload.
-
-## Camera only
-
-```kotlin
-val camera = RialCameraView(context).apply {
-    onCaptured = { result -> result.captureId }
-    onError = { e -> }
-    start(activity, publishableKey, baseUrl)
-}
-```
-
-`capture()` is `suspend`. Offline, the result comes back with `queued = true` and a `queueId` to observe.
-
-## Modules
-
-| Module | Contains |
-| --- | --- |
-| `sdk` | Everything, including Compose UI. |
-| `sdk-core` | Camera, signals, offline queue. No Compose. |
-| `sdk-flow` | Template flow state machine. |
-| `sdk-ui` | The flow's Compose screen. |
+Until then, the [REST API](/quickstart) works from any backend: same verdict, same capture link.
