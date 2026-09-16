@@ -52,18 +52,43 @@ Base URL: `https://api.rial.io`
 
 ## Ask for more than one photo
 
+Each `image` step can say what must appear in it and what condition to assess.
+
 ```json
 {
   "steps": [
-    { "key": "front", "type": "image", "description": "Front of the car" },
-    { "key": "plate", "type": "image", "description": "License plate" }
+    {
+      "key": "front", "type": "image", "description": "Front of the car",
+      "expected_object": "car",
+      "condition_aspects": ["paint", "bumper"]
+    },
+    {
+      "key": "plate", "type": "image", "description": "License plate",
+      "expected_object": "license plate"
+    }
   ],
-  "expected_location": "Av. Córdoba 5635, Buenos Aires",
-  "expected_object": "car"
+  "expected_location": "Av. Córdoba 5635, Buenos Aires"
 }
 ```
 
-`expected_location` checks the photo was taken there. `expected_object` checks it shows what you asked for. Both come back as separate fields next to the verdict — see [Verdicts](/verdicts).
+`expected_object` rejects a photo of something else. `condition_aspects` scores each aspect 0 to 10 with a one-line reason. `expected_location` checks the photo was taken there. All three come back as separate fields next to the verdict — see [Verdicts](/verdicts).
+
+## Reuse it: publish a template
+
+Same steps, published once, one permanent link you can send forever.
+
+```bash
+curl https://api.rial.io/v1/link-templates \
+  -H "Authorization: Bearer $RIAL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "slug": "car-intake", "name": "Car intake", "steps": [ ... ] }'
+```
+
+```json
+{ "slug": "car-intake", "public_url": "https://verify.rial.io/l/...", "status": "active" }
+```
+
+Every person who opens `public_url` gets their own verification. Same thing from the terminal: `rial templates apply car-intake.json` — see [CLI](/cli).
 
 <CardGroup cols={2}>
   <Card title="Verdicts" icon="badge-check" href="/verdicts">

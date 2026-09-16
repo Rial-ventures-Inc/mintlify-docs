@@ -30,7 +30,7 @@ pending → partially_captured → completed | expired | failed
 | Field | Meaning |
 | --- | --- |
 | `label` | `verified`, `suspicious` or `failed`. **Branch on this.** |
-| `reason_code` | Why it isn't `verified`: `screen_detected`, `ai_generated`, `context_mismatch`, `reverse_search_match`, `depth_anomaly`. |
+| `reason_code` | Why it isn't `verified`: `screen_detected`, `ai_generated`, `context_mismatch`, `reverse_search_match`. |
 | `score` | Confidence, 0 to 1. Show it; don't threshold it. |
 | `signals` | The evidence behind the label, one entry per check you asked for. |
 
@@ -43,7 +43,6 @@ Ask for them with `signals_required` when you create the verification.
 | `screen` | Is this a photo of a screen? |
 | `ai` | Does this look AI-generated? |
 | `reverse` | Does this image already exist online? |
-| `depth` | Does the depth sensor agree it's a real scene? |
 
 A photo that was uploaded from the gallery instead of captured live reports `{ "status": "not_applicable", "reason": "uploaded_content" }` on the checks that need a live camera. That is never a failure.
 
@@ -56,6 +55,8 @@ Each one is switched on by a field at creation and comes back next to the verdic
 | `expected_object: "car"` | `object_match: { status: "match" \| "mismatch" \| "inconclusive" }` |
 | `expected_location: "Av. Córdoba 5635, Buenos Aires"` | `location_match: { status: "verified" \| "no_match" \| "ungeocoded", distance_m }` |
 | `condition_aspects: ["paint", "tires"]` | `condition: { score: 7.8, label: "good", aspects: [...] }` |
+
+Set `expected_object` or `condition_aspects` on an `image` step instead of the whole verification and the result comes back per step: `object_matches.<key>` and `condition.steps.<key>`, with the overall `object_match` and `condition` summarizing them.
 
 ## Live capture vs audit
 
