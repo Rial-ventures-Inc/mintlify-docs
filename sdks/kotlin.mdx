@@ -1,191 +1,60 @@
 ---
 title: "Kotlin SDK"
-description: "Native Android capture for rial — v0.10.2."
+description: "Capture inside your Android app. v0.10.2"
 ---
 
-Native Android capture for rial — the SDK takes the photo, signs it with device signals (hardware attestation, location) and submits it for verification.
-
-## Requirements
-
-| | |
-| --- | --- |
-| **minSdk** | 24 |
-| **compileSdk** | 34 |
-| **Kotlin** | 1.9.22 (AGP 8.2.1) |
-| **Java/Kotlin target** | 17 |
-| **Compose** | Only if you use `com.getrial:sdk` or `sdk-ui` — `sdk-core` has no Compose dependency. |
+The SDK takes the photo, signs it with device signals and submits it. Works offline; resumes if the app is killed.
 
 ## Install
 
-Add rial's own Maven repository alongside `google()` and `mavenCentral()`:
-
 ```groovy settings.gradle
-dependencyResolutionManagement {
-    repositories {
-        google()
-        mavenCentral()
-        maven { url 'https://maven.get-rial.com' }
-    }
-}
+maven { url 'https://maven.get-rial.com' }
 ```
 
-Then declare the dependency:
-
-<CodeGroup>
 ```groovy build.gradle
-implementation 'com.getrial:sdk:0.10.2'          // camera + template flow (Compose)
-// or, camera-only without Compose:
-implementation 'com.getrial:sdk-core:0.10.2'
-```
-</CodeGroup>
-
-No credentials, no account, no access request — the repository is open. The SDK ships as compiled, obfuscated binaries under a proprietary license — see [SDK license](/legal/sdk-license).
-
-Permissions (`CAMERA`, `INTERNET`, location) are contributed by the SDK's own manifest via the manifest merger — there's nothing to declare yourself. Each module also ships its own R8 consumer rules, so integrating the SDK doesn't require writing any ProGuard/R8 rules of your own.
-
-<Note>
-`gradle.properties` needs `android.useAndroidX=true` — standard on any modern Android project, but worth checking if your app started from an older template.
-</Note>
-
-### Compose setup (`sdk` / `sdk-ui` only)
-
-`com.getrial:sdk` and `sdk-ui` render their screens with Compose, but the SDK only brings Compose in at runtime scope — your app module still needs Compose enabled and its own Compose dependencies:
-
-```groovy build.gradle (app module)
-android {
-    buildFeatures {
-        compose true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion '1.5.10' // matches Kotlin 1.9.22 / AGP 8.2.1
-    }
-}
-
-dependencies {
-    implementation platform('androidx.compose:compose-bom:2024.02.02')
-    implementation 'androidx.activity:activity-compose:1.8.2'
-}
+implementation 'com.getrial:sdk:0.10.2'        // camera + template flow (Compose)
+implementation 'com.getrial:sdk-core:0.10.2'   // camera only, no Compose
 ```
 
-`sdk-core` (camera only) needs none of this.
+minSdk 24, Kotlin 1.9.22, Java 17. Permissions and R8 rules ship with the SDK. Compiled binaries under the [SDK license](/legal/sdk-license).
 
-## Configure once
-
-Call this from your `Application.onCreate`. All SDK types live under `com.getrial.sdk` (and subpackages) — import from there:
+## Configure
 
 ```kotlin
 import com.getrial.sdk.Rial
-import com.getrial.sdk.RialEnvironment
 
-Rial.configure(this, publishableKey = "pk_live_…")
-// staging for testing: Rial.configure(this, publishableKey = "pk_test_…", environment = RialEnvironment.Staging)
+Rial.configure(this, publishableKey = "pk_live_…")   // Application.onCreate
 ```
 
-## Template flow (turnkey)
+## Template flow
 
-The org and template slugs come from the template link published in the dashboard (`/l/{org}/{template}`):
+Publish a template in the dashboard, then render it:
 
 ```kotlin
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import com.getrial.sdk.Rial
-
-class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            Rial.templateFlow(orgSlug = "acme", templateSlug = "inspeccion", activity = this@MainActivity)
-        }
-    }
+setContent {
+    Rial.templateFlow(orgSlug = "acme", templateSlug = "inspection", activity = this)
 }
 ```
 
-<Note>
-`Rial.templateFlow(...)` is `@Composable` — call it from inside `setContent { }` (or another Compose hierarchy), not as a plain statement in `onCreate`.
-</Note>
+That's the whole flow: steps, your branding, camera, review, durable upload.
 
-This renders the complete flow: typed steps, the tenant's branding, camera, review, and a durable submit backed by WorkManager — offline retries, and it resumes after the process is killed. Rotations are survived by reusing the same verification instead of starting over.
-
-For finer control, combine `Rial.openFlow(...)` with `RialTemplateFlow(outcome.session, activity)` inside `setContent { }` — `RialTemplateFlow` is `@Composable` too.
-
-## Camera only (bring your own UI)
+## Camera only
 
 ```kotlin
-import com.getrial.sdk.RialCameraView
-
 val camera = RialCameraView(context).apply {
-    onCaptured = { result -> /* result.captureId */ }
-    onError = { e -> /* … */ }
+    onCaptured = { result -> result.captureId }
+    onError = { e -> }
     start(activity, publishableKey, baseUrl)
 }
-// custom shutter: showShutter = false + camera.capture()
-// bytes you already have (weaker proof): Rial.capture().capture(jpegBytes)
 ```
 
-<Note>
-`camera.capture()` and `Rial.capture().capture(jpegBytes)` are `suspend` — call them from a coroutine, e.g. `lifecycleScope.launch { camera.capture() }`.
-</Note>
-
-## Offline & durability
-
-The SDK is built to survive a flaky connection and a killed process, not just a happy path.
-
-**Template flow.** Once a photo is captured, submitting it is a durable job: the complete submission intent (token, snapshots, answers) is persisted to disk *before* WorkManager takes ownership of it — so a job that's merely serialized but never scheduled doesn't count as saved. A transient failure (a `5xx`, no network) returns WorkManager's `retry` and keeps the job; the app can be killed and reopened mid-upload and the submission resumes where it left off. Only a terminal outcome — success, or a non-retryable rejection — clears the durable job and its JPEG together.
-
-**Camera-only path.** If the device is offline at capture time, `RialClient.capture(...)` hands the work to the same offline queue instead of failing: see `RialResult` below.
-
-## Error handling
-
-**`RialResult`** — returned by `RialClient.capture(...)`:
-
-```kotlin
-data class RialResult(
-    val captureId: String?,
-    val queued: Boolean = false,
-    val queueId: String? = null,
-)
-```
-
-Usually `captureId` is the server-assigned id. If the device was offline at capture time, the upload was handed to the offline queue instead: `queued` is `true`, `captureId` is `null` (the server assigns one once the queued upload completes), and `queueId` is the WorkManager work id — observe it (e.g. `WorkManager.getWorkInfoByIdFlow`) to drive a UI badge from "pending" to "uploaded."
-
-**`FlowOutcome`** — returned by `Rial.openFlow(...)` / `RialFlowClient.open(...)` when opening a template link:
-
-```kotlin
-sealed interface FlowOutcome {
-    data class Ready(val session: RialFlowSession) : FlowOutcome
-    data class Unavailable(val reason: Reason) : FlowOutcome
-
-    enum class Reason { NotFound, Expired, AlreadyUsed, Transport }
-}
-```
-
-`NotFound` covers a link that's missing, still a draft, paused, or out of capacity — the server doesn't distinguish these to the outside on purpose, so the SDK doesn't invent a distinction either. `Expired` is a verification past its `expires_at`. `AlreadyUsed` means it's already `completed` — nothing left to capture. `Transport` is a network failure or a response the SDK couldn't parse.
-
-## Testing against staging
-
-```kotlin
-Rial.configure(this, publishableKey = "pk_test_…", environment = RialEnvironment.Staging)
-```
+`capture()` is `suspend`. Offline, the result comes back with `queued = true` and a `queueId` to observe.
 
 ## Modules
 
 | Module | Contains |
 | --- | --- |
-| `com.getrial:sdk` | Everything, including Compose UI. |
-| `sdk-core` | Camera, device signals, and the offline submission queue — no Compose. |
-| `sdk-flow` | Template flow model and state machine. |
-| `sdk-ui` | The template flow's Compose screen. |
-
-Dependencies run in one direction: `ui → flow → core`.
-
-## Next steps
-
-<CardGroup cols={2}>
-  <Card title="Authentication" icon="key" href="/authentication">
-    Environments, and how `publishableKey` fits alongside the secret key.
-  </Card>
-  <Card title="Verdicts" icon="badge-check" href="/verdicts">
-    What the verification you just captured against will come back with.
-  </Card>
-</CardGroup>
+| `sdk` | Everything, including Compose UI. |
+| `sdk-core` | Camera, signals, offline queue. No Compose. |
+| `sdk-flow` | Template flow state machine. |
+| `sdk-ui` | The flow's Compose screen. |

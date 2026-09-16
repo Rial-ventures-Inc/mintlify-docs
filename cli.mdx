@@ -1,16 +1,45 @@
 ---
 title: "CLI"
-description: "Ad-hoc calls and scripting against the rial API."
+description: "rial from your terminal."
 ---
 
-For ad-hoc calls and scripting, the `rial` CLI wraps the same public API.
-
-<CodeGroup>
-```bash install
+```bash
 npm i -g @rial/cli
 ```
-</CodeGroup>
+
+## Thirty seconds
 
 ```bash
-rial --help
+rial login                                   # opens the dashboard, stores a token
+
+rial create --step "front: photo of the front" \
+            --match-location "Av. Córdoba 5635, Buenos Aires" \
+            --match-object "car"
+# → prints a capture link. Send it.
+
+rial watch vfy_01H...                        # exits 0 when it completes
+rial get   vfy_01H...                        # the verdict
 ```
+
+`rial create` with no flags mints a one-photo link that expires in an hour.
+
+## Commands
+
+| Command | Does |
+| --- | --- |
+| `rial login` | Log in through the browser. `--api-key rk_secret_…` for servers. |
+| `rial whoami` / `rial logout` | Check or drop the session. |
+| `rial create [...]` | Mint a verification. `--steps-file steps.json` for multi-step forms. |
+| `rial get <id>` | Status and verdict. |
+| `rial watch <id>` | Poll until it settles. Exit code: `0` completed, `1` failed, `2` expired. |
+| `rial list [--status completed]` | Recent verifications. |
+| `rial templates validate <file>` | Check a template JSON offline. |
+| `rial templates apply <file> [--dry-run]` | Create or update a template. Only declared fields change. |
+| `rial templates list` / `get <slug>` | Your templates. |
+| `rial templates simulate <slug>` | Test a template without using quota. |
+
+## Scripts and CI
+
+Set `RIAL_API_KEY` and skip `login`. Add `--json` to any command for the raw API response.
+
+Several accounts? `rial login --profile acme` keeps one session per profile; pass `--profile acme` to any command.

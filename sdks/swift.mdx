@@ -1,180 +1,48 @@
 ---
 title: "Swift SDK"
-description: "Native iOS capture for rial — v0.10.2."
+description: "Capture inside your iOS app. v0.10.2"
 ---
 
-Native iOS capture for rial — the SDK takes the photo, signs it with device signals (App Attest via the Secure Enclave, LiDAR/lens depth, location) and submits it for verification. `0.10.2` aligns with the Kotlin SDK's `0.10.x` line — same feature surface, same flow contract.
-
-## Requirements
-
-| | |
-| --- | --- |
-| **iOS** | 15+ — the supported platform (camera, App Attest, depth). |
-| **macOS** | 12+ — only so the Foundation-only core (networking, coordinator, signal ports) can be unit-tested with `swift test` on a dev Mac. Not a supported target for shipping apps. |
-| **Swift tools version** | 5.9 |
-| **UI** | SwiftUI (`RialTemplateFlowView`, `RialCameraView`) or UIKit (`RialCaptureViewController`) — pick either. |
+The SDK takes the photo, signs it with App Attest, depth and location, and submits it. Works offline; resumes if the app is killed.
 
 ## Install
 
-<CodeGroup>
 ```swift Package.swift
-dependencies: [
-    .package(url: "https://github.com/Rial-ventures-Inc/rial-swift-package.git", from: "0.10.2")
-]
+.package(url: "https://github.com/Rial-ventures-Inc/rial-swift-package.git", from: "0.10.2")
+// product: "RialSDK"
 ```
-```swift Package.swift (target)
-.target(
-    name: "YourApp",
-    dependencies: [
-        .product(name: "RialSDK", package: "rial-swift-package")
-    ]
-)
-```
-</CodeGroup>
 
-The package is a public SwiftPM manifest wrapping a precompiled XCFramework (device + simulator slices) — no GitHub account, no repository access, and no credentials needed to resolve it. The SDK ships as a compiled, obfuscated binary under a proprietary license — see [SDK license](/legal/sdk-license).
+iOS 15+, Swift 5.9. Add `NSCameraUsageDescription` and `NSLocationWhenInUseUsageDescription` to `Info.plist`. Compiled binary under the [SDK license](/legal/sdk-license).
 
-Unlike Android's manifest merger, iOS doesn't merge permission declarations for you — add these to your app's `Info.plist` yourself: `NSCameraUsageDescription` (required) and `NSLocationWhenInUseUsageDescription` (for the location signal).
-
-## Configure once
-
-Call this once at app launch (e.g. from `application(_:didFinishLaunchingWithOptions:)`):
+## Configure
 
 ```swift
-RialSDK.configure(publishableKey: "pk_live_…")
-// staging for testing: RialSDK.configure(publishableKey: "pk_test_…", environment: .staging)
+RialSDK.configure(publishableKey: "pk_live_…")   // at launch
 ```
 
-## Template flow (turnkey)
-
-The org and template slugs come from the template link published in the dashboard (`/l/{org}/{template}`):
+## Template flow
 
 ```swift
-switch await RialSDK.openFlow(orgSlug: "acme", templateSlug: "inspeccion") {
-case .ready(let session):
-    RialTemplateFlowView(session: session)
-case .unavailable(let reason):
-    // .notFound / .expired / .alreadyUsed / .transport
-    MessageView(reason)
+switch await RialSDK.openFlow(orgSlug: "acme", templateSlug: "inspection") {
+case .ready(let session): RialTemplateFlowView(session: session)
+case .unavailable(let reason): MessageView(reason)   // .notFound .expired .alreadyUsed .transport
 }
 ```
 
-This renders the complete flow: typed steps, the tenant's branding, camera, review, and a durable submit backed by the same file-backed offline queue as the camera-only path. The same template renders the same way on Android — the flow's truth lives in the server contract, not in either platform.
+Same template, same screens as Android.
 
-## Camera only (bring your own UI)
-
-Turnkey, UIKit — the SDK presents its own capture screen and hands back a result:
+## Camera only
 
 ```swift
 RialSDK.presentCapture(from: self) { result in
-    switch result {
-    case .success(let r): print("capture", r.captureId ?? r.queueId)
-    case .failure(let e): print("rial error", e)
-    }
+    // .success(r): r.captureId ?? r.queueId
 }
 ```
 
-Embedded, SwiftUI — you own the layout, the SDK still owns the `AVCaptureSession`:
+Or embed `RialCameraView(camera)` in SwiftUI and call `await camera.capture()`.
 
-```swift
-@StateObject private var camera = RialCamera()
+## Testing
 
-var body: some View {
-    RialCameraView(camera).ignoresSafeArea()
-    Button("Capture") { Task { let result = await camera.capture() } }
-}
-```
+App Attest needs a real device and the entitlement; on the Simulator it reports `skipped` and the capture still completes. Every screen exposes stable accessibility identifiers (`rial.capture.shutter`, `tpl.review.submit`, …) that match Android one for one.
 
-Bytes you already have (weaker proof) — `capture(jpeg:token:)` is `async` and returns `Result<RialCaptureResult, RialError>`, so handle both cases:
-
-```swift
-Task {
-    switch await RialSDK.capture(jpeg: jpegData, token: token) {
-    case .success(let result):
-        print("capture", result.captureId ?? result.queueId)
-    case .failure(let error):
-        print("rial error", error)
-    }
-}
-```
-
-## Offline & durability
-
-The SDK is built to survive a flaky connection and a killed process, not just a happy path. Omit `token` from `capture(...)` (the easy path) and it returns immediately with `queued == true` and a `queueId` — the JPEG is durably persisted to disk and uploaded in the background with retry, dedupe by a deterministic idempotency key. Call `await RialSDK.retryPending()` on foreground / connectivity regained to nudge the runner — wrap it in `Task { }` if you're not already in an async context (it also runs automatically on `configure` and after each queued capture). Track progress with `RialSDK.status(queueId:)`.
-
-## Error handling
-
-**`RialCaptureResult`** — returned by `capture(...)`:
-
-```swift
-public struct RialCaptureResult: Equatable, Sendable {
-    public let captureId: String?       // nil until a queued upload lands
-    public let queued: Bool
-    public let queueId: String?         // observe via RialSDK.status(queueId:)
-    public let verificationId: String?
-    public let attestation: String?
-    public let capturedAt: Date
-}
-```
-
-**`FlowOutcome`** — returned by `RialSDK.openFlow(...)`:
-
-```swift
-public enum FlowOutcome: Sendable {
-    case ready(RialFlowSession)
-    case unavailable(Reason)
-
-    public enum Reason: Sendable {
-        case notFound      // missing, draft, paused, or out of capacity
-        case expired       // past the verification's expires_at
-        case alreadyUsed   // already completed — nothing left to capture
-        case transport     // network failure or an unparseable response
-    }
-}
-```
-
-`notFound` deliberately covers several server-side states at once — the server doesn't distinguish them to the outside, so the SDK doesn't invent a distinction either.
-
-## Testing your integration
-
-```swift
-RialSDK.configure(publishableKey: "pk_test_…", environment: .staging)
-```
-
-Both the turnkey camera and the turnkey template flow expose stable, public accessibility identifiers so an integrator's XCUITest suite can drive the flow without depending on copy or layout:
-
-| Identifier | Value |
-| --- | --- |
-| `RialAccessibilityIdentifier.shutter` | `rial.capture.shutter` |
-| `RialAccessibilityIdentifier.cancel` | `rial.capture.cancel` |
-| `RialAccessibilityIdentifier.preview` | `rial.capture.preview` |
-| `RialTemplateAnchor.screen` | `tpl.screen` |
-| `RialTemplateAnchor.brandName` | `tpl.brand.name` |
-| `RialTemplateAnchor.stepCounter` | `tpl.step.counter` |
-| `RialTemplateAnchor.stepInstruction` | `tpl.step.instruction` |
-| `RialTemplateAnchor.textInput` / `.textSubmit` | `tpl.text.input` / `tpl.text.submit` |
-| `RialTemplateAnchor.shotCounter` / `.shutter` | `tpl.shot.counter` / `tpl.shutter` |
-| `RialTemplateAnchor.imageAdvance` | `tpl.image.advance` |
-| `RialTemplateAnchor.review` / `.reviewSubmit` | `tpl.review` / `tpl.review.submit` |
-| `RialTemplateAnchor.uploading` / `.uploadError` / `.uploadRetry` | `tpl.uploading` / `tpl.upload.error` / `tpl.upload.retry` |
-| `RialTemplateAnchor.success` | `tpl.success` |
-
-These values match the Android SDK's identifiers one for one, so a single test plan can describe the flow once and drive it on both platforms.
-
-## Known limits
-
-- **App Attest requires an entitlement and a real device.** On a re-signed binary (a device farm) or the Simulator, the Secure Enclave can't validate the attestation and it comes back `skipped` — the capture still completes normally. This is expected, not a bug.
-- **Template submit requires `RialSDK.configure()` to have run first** — there's no fallback path without it.
-
-See the [0.10.2 release notes](https://github.com/Rial-ventures-Inc/rial-swift-package/releases/tag/v0.10.2) for the complete changelog.
-
-## Next steps
-
-<CardGroup cols={2}>
-  <Card title="Authentication" icon="key" href="/authentication">
-    Environments, and how `publishableKey` fits alongside the secret key.
-  </Card>
-  <Card title="Verdicts" icon="badge-check" href="/verdicts">
-    What the verification you just captured against will come back with.
-  </Card>
-</CardGroup>
+[Release notes](https://github.com/Rial-ventures-Inc/rial-swift-package/releases)

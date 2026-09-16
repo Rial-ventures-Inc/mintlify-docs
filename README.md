@@ -18,13 +18,14 @@ npx mint@latest broken-links
 
 ## Regenerate the API reference
 
-`api-reference/openapi.json` is generated from `@rial/openapi` in the `rial-platform` monorepo — it is not hand-written. Regenerate it with:
+`api-reference/openapi.json` is a docs copy of the platform's public spec: production
+server only, every description trimmed to its first paragraph. Never edit it by hand.
 
 ```bash
-cd ../rial-platform && bun -e "import('./apps/docs/src/spec-json.ts').then(async m => { const fs = await import('node:fs'); fs.writeFileSync('../rial-docs/api-reference/openapi.json', m.publicSpecJson()); })"
+scripts/sync-openapi.sh            # expects ../rial-platform (or RIAL_PLATFORM_DIR)
 ```
 
-Known follow-up: automate this regeneration (e.g. a CI step or git hook) instead of running it by hand.
+Run it whenever the public API changes, before pushing.
 
 ## Activation (owner)
 

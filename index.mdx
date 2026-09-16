@@ -1,49 +1,27 @@
 ---
-title: "rial developer documentation"
-description: "Verify that a photo is real, at the moment of capture."
+title: "rial developer docs"
+description: "Prove a photo is real."
 ---
 
-Build with rial: mint verifications from your backend, capture natively on Android, or script against the API from the command line.
+<span className="rial-eyebrow">Start here</span>
+
+You send a link. Someone takes a photo on their phone. You get back a verdict: real or not, where and when it claims.
 
 <CardGroup cols={2}>
-  <Card title="REST API" icon="cloud" href="/quickstart">
-    Server-side integration. Mint verifications, receive webhooks.
-  </Card>
-  <Card title="Kotlin SDK" icon="android" href="/sdks/kotlin">
-    Native Android capture: camera, templates, offline queue. **v0.10.2**
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Two API calls. Five minutes.
   </Card>
   <Card title="CLI" icon="terminal" href="/cli">
-    Ad-hoc calls and scripting.
+    Same thing from your terminal.
+  </Card>
+  <Card title="Kotlin SDK" icon="android" href="/sdks/kotlin">
+    Capture inside your Android app.
   </Card>
   <Card title="Swift SDK" icon="apple" href="/sdks/swift">
-    Native iOS capture: camera, templates, offline queue. **v0.10.2**
-  </Card>
-  <Card title="React Native" icon="react">
-    Coming soon — cross-platform capture module.
+    Capture inside your iOS app.
   </Card>
 </CardGroup>
 
-## What this API does
-
-You mint a verification against your tenant account, get back a `capture_url`, and send that link to your end-user. They open it on their phone, capture the photos you asked for, and the verification's status moves through:
-
-```
-pending → partially_captured → completed | expired | failed
-```
-
-Once `completed`, the verification carries a verdict built from on-device signals — screen-recapture detection and AI-generation detection — plus the captured images themselves.
-
-<Card title="Get started" icon="rocket" href="/quickstart" horizontal>
-  Zero to a verification in five steps.
+<Card title="API reference" icon="book-open" href="/api-reference" horizontal>
+  Every endpoint, generated from the API itself.
 </Card>
-
-## Core concepts
-
-<CardGroup cols={2}>
-  <Card title="Authentication" icon="key" href="/authentication">
-    The two key types, environments, and how the SDKs authenticate.
-  </Card>
-  <Card title="Verdicts" icon="badge-check" href="/verdicts">
-    How `status` and `verdict` are built, and what each signal checks.
-  </Card>
-</CardGroup>

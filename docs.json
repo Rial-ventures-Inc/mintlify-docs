@@ -1,36 +1,41 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
+  "theme": "willow",
   "name": "rial",
-  "description": "Verify that a photo is real, at the moment of capture. Developer documentation for the rial API, Kotlin SDK, and CLI.",
+  "description": "Prove a photo is real. Developer documentation for the rial API, CLI and native SDKs.",
   "colors": {
     "primary": "#EC1B8A",
     "light": "#EC1B8A",
     "dark": "#EC1B8A"
   },
+  "appearance": {
+    "default": "light"
+  },
+  "fonts": {
+    "family": "Inter"
+  },
+  "styling": {
+    "codeblocks": "system"
+  },
   "favicon": "/favicon.svg",
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg",
-    "href": "https://get-rial.com"
+    "href": "https://www.rial.io"
   },
   "navigation": {
     "groups": [
       {
-        "group": "Get started",
-        "pages": ["index", "quickstart"]
+        "group": "Start",
+        "pages": ["index", "quickstart", "authentication"]
       },
       {
-        "group": "Core concepts",
-        "pages": ["authentication", "verdicts"]
+        "group": "Results",
+        "pages": ["verdicts"]
       },
       {
-        "group": "SDKs",
-        "pages": ["sdks/kotlin", "sdks/swift", "sdks/react-native"]
-      },
-      {
-        "group": "CLI",
-        "pages": ["cli"]
+        "group": "Tools",
+        "pages": ["cli", "sdks/kotlin", "sdks/swift", "sdks/react-native"]
       },
       {
         "group": "API reference",
@@ -45,26 +50,24 @@
   "navbar": {
     "links": [
       {
-        "label": "GitHub",
-        "href": "https://github.com/Rial-ventures-Inc"
+        "label": "Dashboard",
+        "href": "https://app.rial.io"
       }
     ],
     "primary": {
       "type": "button",
       "label": "Get an API key",
-      "href": "https://get-rial.com"
+      "href": "https://app.rial.io/settings"
     }
   },
   "footer": {
-    "socials": {
-      "github": "https://github.com/Rial-ventures-Inc"
-    },
     "links": [
       {
         "header": "rial",
         "items": [
-          { "label": "get-rial.com", "href": "https://get-rial.com" },
-          { "label": "Documentation", "href": "https://docs.get-rial.com" }
+          { "label": "rial.io", "href": "https://www.rial.io" },
+          { "label": "Dashboard", "href": "https://app.rial.io" },
+          { "label": "Status", "href": "https://status.rial.io" }
         ]
       }
     ]
@@ -72,7 +75,7 @@
   "seo": {
     "metatags": {
       "og:title": "rial developer documentation",
-      "og:description": "Verify that a photo is real, at the moment of capture. API reference, Kotlin SDK, and CLI docs for rial."
+      "og:description": "Prove a photo is real. API, CLI and native SDKs."
     }
   },
   "contextual": {
