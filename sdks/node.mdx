@@ -126,6 +126,20 @@ const test = await rial.templates.simulate('car-intake');
 test.captureUrl;  // a real run that is not billed and sends no notifications
 ```
 
+### One link for one person
+
+```ts
+const verification = await rial.templates.mint('car-intake', {
+  identification: 'POL-001',
+  webhookUrl: 'https://your.app/rial',
+  metadata: { claimId: 'CLM-9912' },
+});
+
+verification.captureUrl;  // single-use, for that person only
+```
+
+Everything in the input overrides the template for that one verification: `webhookUrl`, `expiresInSeconds`, `notifyEmail` (`null` opts out), `brandSlug`; `metadata` merges, yours wins.
+
 ### One verification per row
 
 ```ts
@@ -216,6 +230,7 @@ try {
 | `templates.update(slug, patch)` | `PATCH /v1/link-templates/{slug}` |
 | `templates.delete(slug)` | `DELETE /v1/link-templates/{slug}` |
 | `templates.simulate(slug)` | `POST /v1/link-templates/{slug}/simulate` |
+| `templates.mint(slug, input)` | `POST /v1/link-templates/{slug}/verifications` |
 | `templates.previewCsv(slug, input)` | `POST /v1/link-templates/{slug}/import/preview` |
 | `templates.importCsv(slug, input)` | `POST /v1/link-templates/{slug}/import` |
 | `templates.getImport(jobId)` | `GET /v1/link-templates/imports/{jobId}` |
@@ -227,4 +242,4 @@ try {
 | `audits.create(input)` | `POST /v1/verifications` in audit mode, then the upload |
 | `audits.run(input, options)` | `audits.create`, then `verifications.waitFor` |
 
-Inputs and results use camelCase and are typed from the same OpenAPI document as the [API reference](/api-reference), so they never drift. Exported types: `Verification`, `LiveVerdict`, `AuditVerdict`, `Step`, `LinkTemplate`, `ImportJob`, `Database`, `VerificationEvent`, `PublicVerification`, `WebhookEvent`, `WebhookVerdict`, and the inputs `CreateVerificationInput`, `PublishTemplateInput`, `ListVerificationsFilters`, `AuditInput`.
+Inputs and results use camelCase and are typed from the same OpenAPI document as the [API reference](/api-reference), so they never drift. Exported types: `Verification`, `LiveVerdict`, `AuditVerdict`, `Step`, `LinkTemplate`, `ImportJob`, `Database`, `VerificationEvent`, `PublicVerification`, `WebhookEvent`, `WebhookVerdict`, and the inputs `CreateVerificationInput`, `PublishTemplateInput`, `MintFromTemplateInput`, `ListVerificationsFilters`, `AuditInput`.

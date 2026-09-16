@@ -90,6 +90,23 @@ curl https://api.rial.io/v1/link-templates \
 
 Every person who opens `public_url` gets their own verification. Same thing from the terminal: `rial templates apply car-intake.json` — see [CLI](/cli).
 
+## One link for one person
+
+When you already know who the link is for, mint a single-use verification from the template. The body is optional and overrides the template for that one verification: `metadata` merges, the rest replace.
+
+```bash
+curl https://api.rial.io/v1/link-templates/car-intake/verifications \
+  -H "Authorization: Bearer $RIAL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "identification": "POL-001", "webhook_url": "https://your.app/rial", "metadata": { "claim_id": "CLM-9912" } }'
+```
+
+```json
+{ "id": "vfy_…", "status": "pending", "capture_url": "https://verify.rial.io/v/vfy_…", "expires_at": "…" }
+```
+
+Send `capture_url` to that person. `identification` is what the template asks for; with a connected database it also picks the row to compare against.
+
 <CardGroup cols={2}>
   <Card title="Verdicts" icon="badge-check" href="/verdicts">
     What every field means.

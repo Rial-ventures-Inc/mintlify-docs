@@ -1694,6 +1694,54 @@
         "additionalProperties": false,
         "description": "Body for `POST /v1/verifications`. All fields optional — sensible defaults: `max_captures: 1`, `expires_in_seconds: 3600`, `signals_required: [\"screen\", \"ai\"]`. Capture quantity comes as EITHER `max_captures` (N anonymous captures) OR `steps` (guided slots with key/description/min/max) — never both. `context` is what the analysis pipeline cross-references against the capture; `metadata` is opaque pass-through echoed back on every webhook event."
       },
+      "MintFromTemplateRequest": {
+        "type": "object",
+        "properties": {
+          "identification": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "The value the template asks the person for (customer number, claim id). With a connected database it also picks the row to compare against."
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "description": "Your own key/value pairs. Merged over the template metadata; same key, body wins."
+          },
+          "webhook_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "HTTPS URL that receives `verification.created` and `verification.completed`."
+          },
+          "expires_in_seconds": {
+            "type": "integer",
+            "minimum": 60,
+            "maximum": 86400,
+            "description": "How long the link stays open. Replaces the template default."
+          },
+          "notify_email": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 254,
+            "format": "email",
+            "description": "Email that receives the result. `null` opts this verification out; absent uses the template, then your account default."
+          },
+          "brand_slug": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 40,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "description": "Brand profile to render instead of the template one."
+          }
+        },
+        "additionalProperties": false,
+        "description": "Body for `POST /v1/link-templates/{slug}/verifications`. Every field is optional and overrides the template: `metadata` merges key by key, the rest replace."
+      },
       "FinalizeVerificationRequest": {
         "type": "object",
         "properties": {
@@ -6040,6 +6088,145 @@
                       "type": "string",
                       "enum": [
                         "simulation_limit_exceeded"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The template store is unreachable — retry with backoff.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "cause": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                },
+                "example": {
+                  "error": "storage_unavailable"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/link-templates/{slug}/verifications": {
+      "post": {
+        "tags": [
+          "Templates"
+        ],
+        "summary": "Create a verification from a template",
+        "description": "Create one verification from a template and get its link. The body overrides the template for this verification: `metadata` merges, the rest replace.",
+        "security": [
+          {
+            "bearerApiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+              "description": "Template slug — lowercase `[a-z0-9-]`.",
+              "example": "warehouse-intake"
+            },
+            "required": true,
+            "name": "slug",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MintFromTemplateRequest"
+              },
+              "example": {
+                "identification": "POL-001",
+                "webhook_url": "https://api.acmeinsurance.com/rial/webhooks",
+                "metadata": {
+                  "claim_id": "CLM-9912"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Verification minted. `capture_url` is the link to send to the person.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeveloperVerification"
+                },
+                "example": {
+                  "id": "vfy_01HXYZABCDEFGHJKMNPQRSTVWX",
+                  "status": "pending",
+                  "capture_url": "https://verify.rial.io/v/vfy_01HXYZABCDEFGHJKMNPQRSTVWX",
+                  "created_at": "2026-09-16T19:06:57.718Z",
+                  "expires_at": "2026-09-16T20:06:57.718Z",
+                  "captures_count": 0
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request body failed validation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "plan_limit_reached or insufficient_credits: the account cannot cover another verification."
+          },
+          "404": {
+            "description": "No template with that slug for the authenticated tenant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "not_found",
+                    "message": "Resource not found"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "`identification_required` (the template asks for it) or `unknown_brand`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "enum": [
+                        "identification_required",
+                        "unknown_brand"
                       ]
                     }
                   },
