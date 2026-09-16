@@ -4,15 +4,22 @@
   "name": "rial",
   "description": "Prove a photo is real. Developer documentation for the rial API, CLI and native SDKs.",
   "colors": {
-    "primary": "#EC1B8A",
-    "light": "#EC1B8A",
-    "dark": "#EC1B8A"
+    "primary": "#1C1C1A",
+    "light": "#5EDCF0",
+    "dark": "#1C1C1A"
   },
   "appearance": {
     "default": "light"
   },
   "fonts": {
-    "family": "Inter"
+    "heading": {
+      "family": "Cormorant Garamond",
+      "weight": 500
+    },
+    "body": {
+      "family": "Inter",
+      "weight": 400
+    }
   },
   "styling": {
     "codeblocks": "system"
@@ -27,15 +34,26 @@
     "groups": [
       {
         "group": "Start",
-        "pages": ["index", "quickstart", "authentication"]
+        "pages": [
+          "index",
+          "quickstart",
+          "authentication"
+        ]
       },
       {
         "group": "Results",
-        "pages": ["verdicts"]
+        "pages": [
+          "verdicts"
+        ]
       },
       {
         "group": "Tools",
-        "pages": ["cli", "sdks/kotlin", "sdks/swift", "sdks/react-native"]
+        "pages": [
+          "cli",
+          "sdks/kotlin",
+          "sdks/swift",
+          "sdks/react-native"
+        ]
       },
       {
         "group": "API reference",
@@ -43,7 +61,9 @@
       },
       {
         "group": "Legal",
-        "pages": ["legal/sdk-license"]
+        "pages": [
+          "legal/sdk-license"
+        ]
       }
     ]
   },
@@ -65,9 +85,18 @@
       {
         "header": "rial",
         "items": [
-          { "label": "rial.io", "href": "https://www.rial.io" },
-          { "label": "Dashboard", "href": "https://app.rial.io" },
-          { "label": "Status", "href": "https://status.rial.io" }
+          {
+            "label": "rial.io",
+            "href": "https://www.rial.io"
+          },
+          {
+            "label": "Dashboard",
+            "href": "https://app.rial.io"
+          },
+          {
+            "label": "Status",
+            "href": "https://status.rial.io"
+          }
         ]
       }
     ]
@@ -79,6 +108,17 @@
     }
   },
   "contextual": {
-    "options": ["copy", "view", "chatgpt", "claude"]
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude"
+    ]
+  },
+  "background": {
+    "color": {
+      "light": "#FFFDF7",
+      "dark": "#131312"
+    }
   }
 }

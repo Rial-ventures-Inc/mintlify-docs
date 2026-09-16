@@ -1,50 +1,80 @@
-/* rial. — brand layer over Mintlify's willow theme.
-   Almost monochrome: white ground, ink text, hairline borders, one pink accent.
-   Monospace is a design element (labels, ids, hashes), not just code. */
+/* rial — brand 2026 layer over Mintlify's willow theme.
+   Ground: porcelain. Ink: carbon. One accent: aqua, used as a mark, never as a fill.
+   Cormorant Garamond for display, Inter for reading, Chivo Mono for machine detail. */
+@import url('https://fonts.googleapis.com/css2?family=Chivo+Mono:wght@300;400;500&display=swap');
+
 :root {
-  --rial-pink: #ec1b8a;
-  --rial-pink-soft: #fde7f3;
-  --rial-ink: #0a0a0a;
-  --rial-ink-2: #3f3f46;
-  --rial-mute: #71717a;
-  --rial-line: #eaeaea;
-  --rial-mono: 'SF Mono', ui-monospace, Menlo, Consolas, 'Roboto Mono', monospace;
+  --rial-black: #000000;
+  --rial-carbon: #1c1c1a;
+  --rial-silver: #c9c9c9;
+  --rial-parchment: #f1eae3;
+  --rial-porcelain: #fffdf7;
+  --rial-aqua: #5edcf0;
+  --rial-lemon: #efecbc;
+  --rial-ice: #b6f2e3;
+  --rial-rule: #e4e3e0;
+  --rial-mono: 'Chivo Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
 }
 
-/* Code as detail: system mono stack, quiet chrome, hairline instead of shadow. */
+/* Display type: Cormorant at 500, never bold, tight leading. */
+h1,
+h2 {
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+
+h1 {
+  font-size: 2.6rem;
+}
+
+/* Machine detail reads in mono: code, ids, hashes, table headers. */
 code,
 kbd,
-pre {
+pre,
+th {
   font-family: var(--rial-mono);
 }
 
-/* The dot is the mark: a pink period after the site name, nowhere else. */
-.rial-dot {
-  color: var(--rial-pink);
+th {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
-/* Eyebrow: tiny tracked all-caps mono label with the pink dot. */
+/* Eyebrow: aqua square + tracked mono caps, as on the guideline pages. */
 .rial-eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   font-family: var(--rial-mono);
   font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.16em;
+  font-weight: 400;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--rial-mute);
+  color: var(--rial-carbon);
+}
+
+.dark .rial-eyebrow {
+  color: var(--rial-porcelain);
 }
 
 .rial-eyebrow::before {
   content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: var(--rial-pink);
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: var(--rial-aqua);
 }
 
-/* Hairlines do the work shadows do elsewhere. */
+/* Hairlines, not shadows. Aqua only as a light wash on hover. */
 .card {
   box-shadow: none;
+  border-color: var(--rial-rule);
+}
+
+.card:hover {
+  border-color: var(--rial-carbon);
+  background: linear-gradient(135deg, rgba(94, 220, 240, 0.12), transparent 60%);
 }
