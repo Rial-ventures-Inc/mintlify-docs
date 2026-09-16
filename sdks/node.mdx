@@ -1,0 +1,111 @@
+---
+title: "Node / TypeScript SDK"
+description: "The API from your backend, typed."
+---
+
+```bash
+npm i @rial/sdk
+```
+
+Node 20+. No dependencies. Every method is one public endpoint, with camelCase in and out; the SDK does the snake_case on the wire.
+
+```ts
+import { createRial } from '@rial/sdk';
+
+const rial = createRial({ apiKey: process.env.RIAL_API_KEY });
+
+const v = await rial.verifications.create({
+  steps: [{ key: 'front', type: 'image', description: 'Front of the car', expectedObject: 'car' }],
+  expectedLocation: 'Av. Córdoba 5635, Buenos Aires',
+});
+// send v.captureUrl
+
+const done = await rial.verifications.waitFor(v.id);
+done.verdict?.label; // 'verified' | 'suspicious' | 'failed'
+```
+
+## Setup
+
+```ts
+createRial({
+  apiKey: 'rk_secret_…',      // required. Server only.
+  baseUrl?: 'https://api.rial.io',
+  timeoutMs?: 15_000,
+  fetch?: globalThis.fetch,   // inject for tests
+});
+```
+
+## Verifications
+
+| Method | Calls | Returns |
+| --- | --- | --- |
+| `verifications.create(input)` | `POST /v1/verifications` | `Verification` |
+| `verifications.get(id)` | `GET /v1/verifications/{id}` | `Verification` |
+| `verifications.list(filters?)` | `GET /v1/verifications` | `{ items, nextCursor }` |
+| `verifications.iterate(filters?)` | same, page by page | `AsyncIterable<Verification>` |
+| `verifications.waitFor(id, opts?)` | polls `GET …/{id}` | `Verification` once terminal |
+| `verifications.finalize(id, { narrative? })` | `POST …/{id}/finalize` | `Verification` |
+| `verifications.events(id)` | `GET …/{id}/events` | `Event[]` |
+| `verifications.publicResult(id)` | `GET …/{id}/public` (no auth) | `PublicVerification` |
+
+`create` takes exactly what the endpoint takes: `steps` or `maxCaptures`, `expiresInSeconds`, `signalsRequired`, `expectedObject`, `expectedLocation`, `conditionAspects`, `webhookUrl`, `metadata`, `notifyEmail`, `completionMessage`, `mode`, `brandSlug`.
+
+`list` filters: `limit`, `cursor`, `status`, `verdict`, `reasonCode`, `from`, `to`, `mode`, `metadata: { claimId: 'CLM-9912' }`.
+
+`waitFor` resolves when `status` is `completed`, `expired` or `failed` and, for `completed`, once `verdict` is present. Options: `intervalMs` (default 3000, backs off on 429), `timeoutMs` (default 15 minutes), `signal`. Prefer a webhook when you can.
+
+## Templates
+
+| Method | Calls | Returns |
+| --- | --- | --- |
+| `templates.list()` | `GET /v1/link-templates` | `LinkTemplate[]` |
+| `templates.publish(input)` | `POST /v1/link-templates` | `LinkTemplate` with `publicUrl` |
+| `templates.update(slug, patch)` | `PATCH /v1/link-templates/{slug}` | `LinkTemplate` |
+| `templates.delete(slug)` | `DELETE /v1/link-templates/{slug}` | `void` |
+| `templates.simulate(slug)` | `POST …/{slug}/simulate` | `{ verificationId, captureUrl }` |
+| `templates.previewCsv(slug, { csv, columnMapping? })` | `POST …/{slug}/import/preview` | preview with valid and invalid rows |
+| `templates.importCsv(slug, { csv, columnMapping? })` | `POST …/{slug}/import` | `ImportJob` |
+| `templates.getImport(jobId)` | `GET /v1/link-templates/imports/{jobId}` | `ImportJob` |
+| `templates.waitForImport(jobId, opts?)` | polls the above | `ImportJob` once finished |
+
+`publish` requires `slug`, `name`, `steps`. `update` takes any subset; `status: 'paused' | 'active'` pauses and resumes.
+
+## Databases
+
+| Method | Calls | Returns |
+| --- | --- | --- |
+| `databases.list()` | `GET /v1/databases` | `Database[]` |
+| `databases.create({ name, columns, rows, identifierColumn?, id? })` | `POST /v1/databases` | `Database` |
+| `databases.replace(id, { name, columns, rows, identifierColumn? })` | `PUT /v1/databases/{id}` | `Database` |
+| `databases.rename(id, name)` | `PATCH /v1/databases/{id}` | `Database` |
+
+## Webhooks
+
+```ts
+import { parseWebhookEvent } from '@rial/sdk';
+
+app.post('/rial', (req, res) => {
+  const event = parseWebhookEvent(req.body); // typed: verification.created | verification.completed
+  if (event.type === 'verification.completed') event.verification.verdict?.label;
+  res.sendStatus(200);
+});
+```
+
+## Errors
+
+Every non-2xx response throws `RialError`:
+
+```ts
+try {
+  await rial.verifications.get('vfy_…');
+} catch (e) {
+  if (e instanceof RialError) e.status; // 404
+  if (e instanceof RialError) e.code;   // 'not_found', 'slug_taken', 'rate_limited', …
+}
+```
+
+Reads (`GET`) retry on network errors, `429` and `5xx` with backoff. Writes never retry on their own.
+
+## Types
+
+Everything the API returns is exported: `Verification`, `Verdict`, `Signal`, `ObjectMatch`, `LocationMatch`, `Condition`, `Step`, `LinkTemplate`, `ImportJob`, `Database`, `Event`, `PublicVerification`, plus the inputs `CreateVerificationInput`, `PublishTemplateInput`, `ListVerificationsFilters`. Generated from the same OpenAPI document as this reference, so they never drift.

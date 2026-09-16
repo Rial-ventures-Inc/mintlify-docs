@@ -49,6 +49,7 @@
       {
         "group": "Tools",
         "pages": [
+          "sdks/node",
           "cli",
           "sdks/kotlin",
           "sdks/swift",
