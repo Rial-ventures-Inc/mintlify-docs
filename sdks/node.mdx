@@ -70,7 +70,7 @@ app.post('/rial', async (req, res) => {
 });
 ```
 
-Two events arrive: `verification.created` and `verification.completed`. Both carry the full verification.
+Two events arrive. `verification.created` carries the ids and the status. `verification.completed` adds the verdict, the captures and the answers; for anything else, call `verifications.get(event.verificationId)`.
 
 ## Reading results
 
@@ -161,6 +161,28 @@ await rial.databases.replace(database.id, { name: 'Insured fleet', columns, rows
 await rial.databases.rename(database.id, 'Insured fleet 2026');
 ```
 
+## Audits: a photo you already have
+
+No link and no camera: you have the file, RIAL analyses it. Same verdict shape, minus what only a live capture can prove.
+
+```ts
+import { readFile } from 'node:fs/promises';
+
+const result = await rial.audits.run({
+  file: await readFile('claim-9912.jpg'),
+  contentType: 'image/jpeg',
+  expectedObject: 'car',
+  conditionAspects: ['paint', 'bumper'],
+  metadata: { claimId: 'CLM-9912' },
+});
+
+result.verdict?.label;        // 'verified' | 'suspicious' | 'failed'
+result.objectMatch?.status;   // 'match'
+result.condition?.score;      // 7.5
+```
+
+`audits.run` uploads, starts the analysis and waits. `audits.create` does the first two and returns at once; read the result later with `verifications.get` or a webhook.
+
 ## Errors
 
 ```ts
@@ -203,5 +225,7 @@ try {
 | `databases.create(input)` | `POST /v1/databases` |
 | `databases.replace(id, input)` | `PUT /v1/databases/{id}` |
 | `databases.rename(id, name)` | `PATCH /v1/databases/{id}` |
+| `audits.create(input)` | `POST /v1/verifications` in audit mode, then the upload |
+| `audits.run(input, options)` | `audits.create`, then `verifications.waitFor` |
 
 Inputs and results use camelCase and are typed from the same OpenAPI document as the [API reference](/api-reference), so they never drift.
