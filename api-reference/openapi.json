@@ -7445,6 +7445,97 @@
           }
         }
       },
+      "delete": {
+        "tags": [
+          "Databases"
+        ],
+        "summary": "Delete a database",
+        "description": "Removes the table and its rows. Templates bound to it keep their binding (columns by name, database by id) — their lookups degrade to \"no row resolved\" and the dashboard shows the broken reference for the operator to fix.",
+        "security": [
+          {
+            "bearerApiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,64}$",
+              "description": "Database id — stable across re-uploads.",
+              "example": "db_01hz3k9m2q"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "deleted": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "deleted"
+                  ]
+                },
+                "example": {
+                  "deleted": true
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No database with that id for the authenticated tenant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "not_found",
+                    "message": "Resource not found"
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The store is unreachable — retry with backoff.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "cause": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                },
+                "example": {
+                  "error": "storage_unavailable"
+                }
+              }
+            }
+          }
+        }
+      },
       "patch": {
         "tags": [
           "Databases"
