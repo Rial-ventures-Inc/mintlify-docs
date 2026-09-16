@@ -110,7 +110,8 @@
                         "label": {
                           "type": "string",
                           "minLength": 1,
-                          "maxLength": 200
+                          "maxLength": 200,
+                          "description": "Visible title of the step."
                         },
                         "screen": {
                           "type": "object",
@@ -135,7 +136,8 @@
                             "key",
                             "title"
                           ],
-                          "additionalProperties": false
+                          "additionalProperties": false,
+                          "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
                         },
                         "when": {
                           "type": "object",
@@ -157,13 +159,15 @@
                             "key",
                             "value"
                           ],
-                          "additionalProperties": false
+                          "additionalProperties": false,
+                          "description": "Show this step only when the step `key` was answered with `value`."
                         },
                         "key": {
                           "type": "string",
                           "minLength": 1,
                           "maxLength": 64,
-                          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                          "pattern": "^[a-z0-9][a-z0-9_-]*$",
+                          "description": "Stable id of the step. Its answer or photos come back under this key."
                         },
                         "type": {
                           "type": "string",
@@ -174,15 +178,18 @@
                         "description": {
                           "type": "string",
                           "maxLength": 500,
-                          "default": ""
+                          "default": "",
+                          "description": "Instruction shown to the person."
                         },
                         "required": {
                           "type": "boolean",
-                          "default": true
+                          "default": true,
+                          "description": "Default true."
                         },
                         "multiple": {
                           "type": "boolean",
-                          "default": false
+                          "default": false,
+                          "description": "Allow picking more than one option."
                         },
                         "options": {
                           "type": "array",
@@ -208,7 +215,8 @@
                             "additionalProperties": false
                           },
                           "minItems": 1,
-                          "maxItems": 50
+                          "maxItems": 50,
+                          "description": "Options to pick from, each with `key` and `label`."
                         }
                       },
                       "required": [
@@ -224,7 +232,8 @@
                         "label": {
                           "type": "string",
                           "minLength": 1,
-                          "maxLength": 200
+                          "maxLength": 200,
+                          "description": "Visible title of the step."
                         },
                         "screen": {
                           "type": "object",
@@ -249,7 +258,8 @@
                             "key",
                             "title"
                           ],
-                          "additionalProperties": false
+                          "additionalProperties": false,
+                          "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
                         },
                         "when": {
                           "type": "object",
@@ -271,13 +281,15 @@
                             "key",
                             "value"
                           ],
-                          "additionalProperties": false
+                          "additionalProperties": false,
+                          "description": "Show this step only when the step `key` was answered with `value`."
                         },
                         "key": {
                           "type": "string",
                           "minLength": 1,
                           "maxLength": 64,
-                          "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                          "pattern": "^[a-z0-9][a-z0-9_-]*$",
+                          "description": "Stable id of the step. Its answer or photos come back under this key."
                         },
                         "type": {
                           "type": "string",
@@ -289,16 +301,19 @@
                           "type": "string",
                           "enum": [
                             "BR"
-                          ]
+                          ],
+                          "description": "`BR` shows Brazilian address fields."
                         },
                         "description": {
                           "type": "string",
                           "maxLength": 500,
-                          "default": ""
+                          "default": "",
+                          "description": "Instruction shown to the person."
                         },
                         "required": {
                           "type": "boolean",
-                          "default": true
+                          "default": true,
+                          "description": "Default true."
                         }
                       },
                       "required": [
@@ -313,7 +328,8 @@
                         "label": {
                           "type": "string",
                           "minLength": 1,
-                          "maxLength": 200
+                          "maxLength": 200,
+                          "description": "Visible title of the step."
                         },
                         "screen": {
                           "type": "object",
@@ -338,7 +354,8 @@
                             "key",
                             "title"
                           ],
-                          "additionalProperties": false
+                          "additionalProperties": false,
+                          "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
                         },
                         "when": {
                           "type": "object",
@@ -360,7 +377,8 @@
                             "key",
                             "value"
                           ],
-                          "additionalProperties": false
+                          "additionalProperties": false,
+                          "description": "Show this step only when the step `key` was answered with `value`."
                         },
                         "key": {
                           "type": "string",
@@ -439,7 +457,8 @@
                         "label": {
                           "type": "string",
                           "minLength": 1,
-                          "maxLength": 200
+                          "maxLength": 200,
+                          "description": "Visible title of the step."
                         },
                         "screen": {
                           "type": "object",
@@ -464,7 +483,8 @@
                             "key",
                             "title"
                           ],
-                          "additionalProperties": false
+                          "additionalProperties": false,
+                          "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
                         },
                         "when": {
                           "type": "object",
@@ -486,7 +506,8 @@
                             "key",
                             "value"
                           ],
-                          "additionalProperties": false
+                          "additionalProperties": false,
+                          "description": "Show this step only when the step `key` was answered with `value`."
                         },
                         "key": {
                           "type": "string",
@@ -555,7 +576,8 @@
                         "label": {
                           "type": "string",
                           "minLength": 1,
-                          "maxLength": 200
+                          "maxLength": 200,
+                          "description": "Visible title of the step."
                         },
                         "screen": {
                           "type": "object",
@@ -580,7 +602,8 @@
                             "key",
                             "title"
                           ],
-                          "additionalProperties": false
+                          "additionalProperties": false,
+                          "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
                         },
                         "when": {
                           "type": "object",
@@ -602,7 +625,8 @@
                             "key",
                             "value"
                           ],
-                          "additionalProperties": false
+                          "additionalProperties": false,
+                          "description": "Show this step only when the step `key` was answered with `value`."
                         },
                         "key": {
                           "type": "string",
@@ -668,7 +692,8 @@
                         "label": {
                           "type": "string",
                           "minLength": 1,
-                          "maxLength": 200
+                          "maxLength": 200,
+                          "description": "Visible title of the step."
                         },
                         "screen": {
                           "type": "object",
@@ -693,7 +718,8 @@
                             "key",
                             "title"
                           ],
-                          "additionalProperties": false
+                          "additionalProperties": false,
+                          "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
                         },
                         "when": {
                           "type": "object",
@@ -715,7 +741,8 @@
                             "key",
                             "value"
                           ],
-                          "additionalProperties": false
+                          "additionalProperties": false,
+                          "description": "Show this step only when the step `key` was answered with `value`."
                         },
                         "key": {
                           "type": "string",
@@ -1560,7 +1587,8 @@
           "max_captures": {
             "type": "integer",
             "minimum": 1,
-            "maximum": 20
+            "maximum": 20,
+            "description": "How many anonymous photos to ask for. Use this or `steps`, never both. Default 1."
           },
           "steps": {
             "type": "array",
@@ -1572,7 +1600,8 @@
                     "label": {
                       "type": "string",
                       "minLength": 1,
-                      "maxLength": 200
+                      "maxLength": 200,
+                      "description": "Visible title of the step."
                     },
                     "screen": {
                       "type": "object",
@@ -1597,7 +1626,8 @@
                         "key",
                         "title"
                       ],
-                      "additionalProperties": false
+                      "additionalProperties": false,
+                      "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
                     },
                     "when": {
                       "type": "object",
@@ -1619,13 +1649,15 @@
                         "key",
                         "value"
                       ],
-                      "additionalProperties": false
+                      "additionalProperties": false,
+                      "description": "Show this step only when the step `key` was answered with `value`."
                     },
                     "key": {
                       "type": "string",
                       "minLength": 1,
                       "maxLength": 64,
-                      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                      "pattern": "^[a-z0-9][a-z0-9_-]*$",
+                      "description": "Stable id of the step. Its answer or photos come back under this key."
                     },
                     "type": {
                       "type": "string",
@@ -1637,18 +1669,22 @@
                     "description": {
                       "type": "string",
                       "maxLength": 500,
-                      "default": ""
+                      "default": "",
+                      "description": "Instruction shown to the person."
                     },
                     "min": {
                       "type": "integer",
-                      "minimum": 0
+                      "minimum": 0,
+                      "description": "Minimum photos. 0 makes the step optional."
                     },
                     "max": {
                       "type": "integer",
-                      "minimum": 1
+                      "minimum": 1,
+                      "description": "Maximum photos."
                     },
                     "allow_upload": {
-                      "type": "boolean"
+                      "type": "boolean",
+                      "description": "Also allow picking a file from the gallery instead of the camera."
                     },
                     "accept": {
                       "type": "array",
@@ -1662,17 +1698,20 @@
                           "image/heif"
                         ]
                       },
-                      "minItems": 1
+                      "minItems": 1,
+                      "description": "Accepted media types."
                     },
                     "max_size_bytes": {
                       "type": "integer",
                       "minimum": 1,
-                      "maximum": 26214400
+                      "maximum": 26214400,
+                      "description": "Maximum size per photo, in bytes."
                     },
                     "expected_object": {
                       "type": "string",
                       "minLength": 1,
-                      "maxLength": 200
+                      "maxLength": 200,
+                      "description": "What must appear in this photo. Overrides the verification-level value."
                     },
                     "condition_aspects": {
                       "type": "array",
@@ -1682,7 +1721,8 @@
                         "maxLength": 40
                       },
                       "minItems": 1,
-                      "maxItems": 6
+                      "maxItems": 6,
+                      "description": "Aspects to score on this photo. Overrides the verification-level value."
                     }
                   },
                   "required": [
@@ -1698,7 +1738,8 @@
                     "label": {
                       "type": "string",
                       "minLength": 1,
-                      "maxLength": 200
+                      "maxLength": 200,
+                      "description": "Visible title of the step."
                     },
                     "screen": {
                       "type": "object",
@@ -1723,7 +1764,8 @@
                         "key",
                         "title"
                       ],
-                      "additionalProperties": false
+                      "additionalProperties": false,
+                      "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
                     },
                     "when": {
                       "type": "object",
@@ -1745,13 +1787,15 @@
                         "key",
                         "value"
                       ],
-                      "additionalProperties": false
+                      "additionalProperties": false,
+                      "description": "Show this step only when the step `key` was answered with `value`."
                     },
                     "key": {
                       "type": "string",
                       "minLength": 1,
                       "maxLength": 64,
-                      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                      "pattern": "^[a-z0-9][a-z0-9_-]*$",
+                      "description": "Stable id of the step. Its answer or photos come back under this key."
                     },
                     "type": {
                       "type": "string",
@@ -1762,11 +1806,13 @@
                     "description": {
                       "type": "string",
                       "maxLength": 500,
-                      "default": ""
+                      "default": "",
+                      "description": "Instruction shown to the person."
                     },
                     "required": {
                       "type": "boolean",
-                      "default": true
+                      "default": true,
+                      "description": "Default true."
                     },
                     "validation": {
                       "type": "object",
@@ -1795,14 +1841,16 @@
                       "default": {
                         "format": "free_text"
                       },
-                      "additionalProperties": false
+                      "additionalProperties": false,
+                      "description": "Length and format rules: `free_text`, `numeric_id`, `alphanumeric_id` or `email`."
                     },
                     "variant": {
                       "type": "string",
                       "enum": [
                         "short",
                         "long"
-                      ]
+                      ],
+                      "description": "`short` (one line) or `long`."
                     }
                   },
                   "required": [
@@ -1817,7 +1865,8 @@
                     "label": {
                       "type": "string",
                       "minLength": 1,
-                      "maxLength": 200
+                      "maxLength": 200,
+                      "description": "Visible title of the step."
                     },
                     "screen": {
                       "type": "object",
@@ -1842,7 +1891,8 @@
                         "key",
                         "title"
                       ],
-                      "additionalProperties": false
+                      "additionalProperties": false,
+                      "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
                     },
                     "when": {
                       "type": "object",
@@ -1864,13 +1914,15 @@
                         "key",
                         "value"
                       ],
-                      "additionalProperties": false
+                      "additionalProperties": false,
+                      "description": "Show this step only when the step `key` was answered with `value`."
                     },
                     "key": {
                       "type": "string",
                       "minLength": 1,
                       "maxLength": 64,
-                      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                      "pattern": "^[a-z0-9][a-z0-9_-]*$",
+                      "description": "Stable id of the step. Its answer or photos come back under this key."
                     },
                     "type": {
                       "type": "string",
@@ -1882,20 +1934,24 @@
                       "type": "string",
                       "enum": [
                         "signature"
-                      ]
+                      ],
+                      "description": "`signature` shows a signature pad instead of a file picker."
                     },
                     "description": {
                       "type": "string",
                       "maxLength": 500,
-                      "default": ""
+                      "default": "",
+                      "description": "Instruction shown to the person."
                     },
                     "min": {
                       "type": "integer",
-                      "minimum": 0
+                      "minimum": 0,
+                      "description": "Minimum files. 0 makes the step optional."
                     },
                     "max": {
                       "type": "integer",
-                      "minimum": 1
+                      "minimum": 1,
+                      "description": "Maximum files."
                     },
                     "accept": {
                       "type": "array",
@@ -1916,13 +1972,15 @@
                         "image/webp",
                         "image/heic",
                         "image/heif"
-                      ]
+                      ],
+                      "description": "Accepted media types."
                     },
                     "max_size_bytes": {
                       "type": "integer",
                       "minimum": 1,
                       "maximum": 26214400,
-                      "default": 10485760
+                      "default": 10485760,
+                      "description": "Maximum size per file, in bytes."
                     }
                   },
                   "required": [
@@ -1939,7 +1997,8 @@
                     "label": {
                       "type": "string",
                       "minLength": 1,
-                      "maxLength": 200
+                      "maxLength": 200,
+                      "description": "Visible title of the step."
                     },
                     "screen": {
                       "type": "object",
@@ -1964,7 +2023,8 @@
                         "key",
                         "title"
                       ],
-                      "additionalProperties": false
+                      "additionalProperties": false,
+                      "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
                     },
                     "when": {
                       "type": "object",
@@ -1986,13 +2046,15 @@
                         "key",
                         "value"
                       ],
-                      "additionalProperties": false
+                      "additionalProperties": false,
+                      "description": "Show this step only when the step `key` was answered with `value`."
                     },
                     "key": {
                       "type": "string",
                       "minLength": 1,
                       "maxLength": 64,
-                      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                      "pattern": "^[a-z0-9][a-z0-9_-]*$",
+                      "description": "Stable id of the step. Its answer or photos come back under this key."
                     },
                     "type": {
                       "type": "string",
@@ -2003,21 +2065,25 @@
                     "description": {
                       "type": "string",
                       "maxLength": 500,
-                      "default": ""
+                      "default": "",
+                      "description": "Instruction shown to the person."
                     },
                     "min": {
                       "type": "integer",
-                      "minimum": 0
+                      "minimum": 0,
+                      "description": "Minimum clips. 0 makes the step optional."
                     },
                     "max": {
                       "type": "integer",
-                      "minimum": 1
+                      "minimum": 1,
+                      "description": "Maximum clips."
                     },
                     "max_duration_sec": {
                       "type": "integer",
                       "minimum": 1,
                       "maximum": 30,
-                      "default": 30
+                      "default": 30,
+                      "description": "Maximum length of each clip, in seconds."
                     }
                   },
                   "required": [
@@ -2034,7 +2100,8 @@
                     "label": {
                       "type": "string",
                       "minLength": 1,
-                      "maxLength": 200
+                      "maxLength": 200,
+                      "description": "Visible title of the step."
                     },
                     "screen": {
                       "type": "object",
@@ -2059,7 +2126,8 @@
                         "key",
                         "title"
                       ],
-                      "additionalProperties": false
+                      "additionalProperties": false,
+                      "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
                     },
                     "when": {
                       "type": "object",
@@ -2081,13 +2149,15 @@
                         "key",
                         "value"
                       ],
-                      "additionalProperties": false
+                      "additionalProperties": false,
+                      "description": "Show this step only when the step `key` was answered with `value`."
                     },
                     "key": {
                       "type": "string",
                       "minLength": 1,
                       "maxLength": 64,
-                      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                      "pattern": "^[a-z0-9][a-z0-9_-]*$",
+                      "description": "Stable id of the step. Its answer or photos come back under this key."
                     },
                     "type": {
                       "type": "string",
@@ -2098,15 +2168,18 @@
                     "description": {
                       "type": "string",
                       "maxLength": 500,
-                      "default": ""
+                      "default": "",
+                      "description": "Instruction shown to the person."
                     },
                     "required": {
                       "type": "boolean",
-                      "default": true
+                      "default": true,
+                      "description": "Default true."
                     },
                     "multiple": {
                       "type": "boolean",
-                      "default": false
+                      "default": false,
+                      "description": "Allow picking more than one option."
                     },
                     "options": {
                       "type": "array",
@@ -2132,7 +2205,8 @@
                         "additionalProperties": false
                       },
                       "minItems": 1,
-                      "maxItems": 50
+                      "maxItems": 50,
+                      "description": "Options to pick from, each with `key` and `label`."
                     }
                   },
                   "required": [
@@ -2148,7 +2222,8 @@
                     "label": {
                       "type": "string",
                       "minLength": 1,
-                      "maxLength": 200
+                      "maxLength": 200,
+                      "description": "Visible title of the step."
                     },
                     "screen": {
                       "type": "object",
@@ -2173,7 +2248,8 @@
                         "key",
                         "title"
                       ],
-                      "additionalProperties": false
+                      "additionalProperties": false,
+                      "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
                     },
                     "when": {
                       "type": "object",
@@ -2195,13 +2271,15 @@
                         "key",
                         "value"
                       ],
-                      "additionalProperties": false
+                      "additionalProperties": false,
+                      "description": "Show this step only when the step `key` was answered with `value`."
                     },
                     "key": {
                       "type": "string",
                       "minLength": 1,
                       "maxLength": 64,
-                      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                      "pattern": "^[a-z0-9][a-z0-9_-]*$",
+                      "description": "Stable id of the step. Its answer or photos come back under this key."
                     },
                     "type": {
                       "type": "string",
@@ -2213,16 +2291,19 @@
                       "type": "string",
                       "enum": [
                         "BR"
-                      ]
+                      ],
+                      "description": "`BR` shows Brazilian address fields."
                     },
                     "description": {
                       "type": "string",
                       "maxLength": 500,
-                      "default": ""
+                      "default": "",
+                      "description": "Instruction shown to the person."
                     },
                     "required": {
                       "type": "boolean",
-                      "default": true
+                      "default": true,
+                      "description": "Default true."
                     }
                   },
                   "required": [
@@ -2233,13 +2314,15 @@
                 }
               ]
             },
-            "minItems": 1
+            "minItems": 1,
+            "description": "Guided steps in order: photos, text questions, uploads, choices, addresses. Use this or `max_captures`."
           },
           "expires_in_seconds": {
             "type": "integer",
             "minimum": 60,
             "maximum": 86400,
-            "default": 3600
+            "default": 3600,
+            "description": "How long the capture link stays open, in seconds. Default 3600 (one hour), max 86400."
           },
           "signals_required": {
             "type": "array",
@@ -2256,18 +2339,21 @@
             "default": [
               "screen",
               "ai"
-            ]
+            ],
+            "description": "Checks to run on each photo: `screen` (photo of a screen), `ai` (AI-generated), `reverse` (already online), `context` (matches `context`). Default `[\"screen\", \"ai\"]`."
           },
           "seal": {
             "type": "boolean",
-            "default": true
+            "default": true,
+            "description": "Stamp the delivered photos with a C2PA seal. Default true."
           },
           "mode": {
             "type": "string",
             "enum": [
               "verification",
               "audit"
-            ]
+            ],
+            "description": "`verification` (photo taken live, default) or `audit` (a file that already exists, uploaded through the API)."
           },
           "context": {
             "type": "object",
@@ -2302,11 +2388,13 @@
             "required": [
               "kind",
               "summary"
-            ]
+            ],
+            "description": "What the photo is supposed to show, for the `context` check: `kind` names the thing, `summary` describes it in one line."
           },
           "webhook_url": {
             "type": "string",
-            "format": "uri"
+            "format": "uri",
+            "description": "HTTPS URL that receives `verification.created` and `verification.completed`."
           },
           "notify_email": {
             "type": [
@@ -2314,21 +2402,24 @@
               "null"
             ],
             "maxLength": 254,
-            "format": "email"
+            "format": "email",
+            "description": "Email that receives the result. `null` opts this verification out; absent uses your account default."
           },
           "notify_subject_template": {
             "type": [
               "string",
               "null"
             ],
-            "minLength": 1
+            "minLength": 1,
+            "description": "Subject of the result email. `{variable}` placeholders allowed."
           },
           "notify_body_template": {
             "type": [
               "string",
               "null"
             ],
-            "minLength": 1
+            "minLength": 1,
+            "description": "Body of the result email. `{variable}` placeholders allowed."
           },
           "completion_message": {
             "type": [
@@ -2344,20 +2435,24 @@
             "additionalProperties": {
               "type": "string",
               "maxLength": 500
-            }
+            },
+            "description": "Your own key/value strings, returned with every result and webhook. Example: `{ \"claim_id\": \"CLM-9912\" }`."
           },
           "requires_location": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Require a GPS fix on the first photo without comparing it to an address."
           },
           "expected_location": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 300
+            "maxLength": 300,
+            "description": "Street address the photo must be taken at. Turns on `location_match`."
           },
           "expected_object": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 200
+            "maxLength": 200,
+            "description": "What must appear in the photo, e.g. `\"car\"`. Turns on `object_match`."
           },
           "condition_aspects": {
             "type": "array",
@@ -2367,7 +2462,8 @@
               "maxLength": 40
             },
             "minItems": 1,
-            "maxItems": 6
+            "maxItems": 6,
+            "description": "One to six aspects to score from 0 to 10, e.g. `[\"paint\", \"tires\"]`. Turns on `condition`."
           },
           "expected_info": {
             "type": "object",
@@ -2473,13 +2569,15 @@
                 "additionalProperties": false
               }
             },
-            "additionalProperties": false
+            "additionalProperties": false,
+            "description": "Structured alternative to `expected_location`, `expected_object` and `condition_aspects`. Send one form or the other."
           },
           "brand_slug": {
             "type": "string",
             "minLength": 2,
             "maxLength": 40,
-            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "description": "Brand profile shown on the capture page. Absent = your default brand."
           }
         },
         "additionalProperties": false,
@@ -3101,6 +3199,7 @@
         ],
         "requestBody": {
           "required": true,
+          "description": "Send `steps` for guided photos, or `max_captures` for N anonymous photos (default 1) — never both. Everything else is optional.",
           "content": {
             "application/json": {
               "schema": {
@@ -5365,6 +5464,7 @@
         ],
         "requestBody": {
           "required": true,
+          "description": "`slug`, `name` and `steps` are required. Everything else is optional.",
           "content": {
             "application/json": {
               "schema": {
@@ -5374,12 +5474,14 @@
                     "type": "string",
                     "minLength": 2,
                     "maxLength": 40,
-                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+                    "description": "URL-safe id, unique in your account: lowercase letters, digits and single hyphens."
                   },
                   "name": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 80
+                    "maxLength": 80,
+                    "description": "Name shown in the dashboard and to the person capturing."
                   },
                   "mode": {
                     "type": "string",
@@ -5388,7 +5490,8 @@
                       "audit",
                       "hybrid"
                     ],
-                    "default": "capture"
+                    "default": "capture",
+                    "description": "`capture` (live photos, default), `audit` (uploaded files) or `hybrid`."
                   },
                   "steps": {
                     "type": "array",
@@ -5400,7 +5503,8 @@
                             "label": {
                               "type": "string",
                               "minLength": 1,
-                              "maxLength": 200
+                              "maxLength": 200,
+                              "description": "Visible title of the step."
                             },
                             "screen": {
                               "type": "object",
@@ -5425,7 +5529,8 @@
                                 "key",
                                 "title"
                               ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
                             },
                             "when": {
                               "type": "object",
@@ -5447,13 +5552,15 @@
                                 "key",
                                 "value"
                               ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "Show this step only when the step `key` was answered with `value`."
                             },
                             "key": {
                               "type": "string",
                               "minLength": 1,
                               "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                              "pattern": "^[a-z0-9][a-z0-9_-]*$",
+                              "description": "Stable id of the step. Its answer or photos come back under this key."
                             },
                             "type": {
                               "type": "string",
@@ -5465,18 +5572,22 @@
                             "description": {
                               "type": "string",
                               "maxLength": 500,
-                              "default": ""
+                              "default": "",
+                              "description": "Instruction shown to the person."
                             },
                             "min": {
                               "type": "integer",
-                              "minimum": 0
+                              "minimum": 0,
+                              "description": "Minimum photos. 0 makes the step optional."
                             },
                             "max": {
                               "type": "integer",
-                              "minimum": 1
+                              "minimum": 1,
+                              "description": "Maximum photos."
                             },
                             "allow_upload": {
-                              "type": "boolean"
+                              "type": "boolean",
+                              "description": "Also allow picking a file from the gallery instead of the camera."
                             },
                             "accept": {
                               "type": "array",
@@ -5490,17 +5601,20 @@
                                   "image/heif"
                                 ]
                               },
-                              "minItems": 1
+                              "minItems": 1,
+                              "description": "Accepted media types."
                             },
                             "max_size_bytes": {
                               "type": "integer",
                               "minimum": 1,
-                              "maximum": 26214400
+                              "maximum": 26214400,
+                              "description": "Maximum size per photo, in bytes."
                             },
                             "expected_object": {
                               "type": "string",
                               "minLength": 1,
-                              "maxLength": 200
+                              "maxLength": 200,
+                              "description": "What must appear in this photo. Overrides the verification-level value."
                             },
                             "condition_aspects": {
                               "type": "array",
@@ -5510,7 +5624,8 @@
                                 "maxLength": 40
                               },
                               "minItems": 1,
-                              "maxItems": 6
+                              "maxItems": 6,
+                              "description": "Aspects to score on this photo. Overrides the verification-level value."
                             }
                           },
                           "required": [
@@ -5526,7 +5641,8 @@
                             "label": {
                               "type": "string",
                               "minLength": 1,
-                              "maxLength": 200
+                              "maxLength": 200,
+                              "description": "Visible title of the step."
                             },
                             "screen": {
                               "type": "object",
@@ -5551,7 +5667,8 @@
                                 "key",
                                 "title"
                               ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
                             },
                             "when": {
                               "type": "object",
@@ -5573,13 +5690,15 @@
                                 "key",
                                 "value"
                               ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "Show this step only when the step `key` was answered with `value`."
                             },
                             "key": {
                               "type": "string",
                               "minLength": 1,
                               "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                              "pattern": "^[a-z0-9][a-z0-9_-]*$",
+                              "description": "Stable id of the step. Its answer or photos come back under this key."
                             },
                             "type": {
                               "type": "string",
@@ -5590,11 +5709,13 @@
                             "description": {
                               "type": "string",
                               "maxLength": 500,
-                              "default": ""
+                              "default": "",
+                              "description": "Instruction shown to the person."
                             },
                             "required": {
                               "type": "boolean",
-                              "default": true
+                              "default": true,
+                              "description": "Default true."
                             },
                             "validation": {
                               "type": "object",
@@ -5623,14 +5744,16 @@
                               "default": {
                                 "format": "free_text"
                               },
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "Length and format rules: `free_text`, `numeric_id`, `alphanumeric_id` or `email`."
                             },
                             "variant": {
                               "type": "string",
                               "enum": [
                                 "short",
                                 "long"
-                              ]
+                              ],
+                              "description": "`short` (one line) or `long`."
                             }
                           },
                           "required": [
@@ -5645,7 +5768,8 @@
                             "label": {
                               "type": "string",
                               "minLength": 1,
-                              "maxLength": 200
+                              "maxLength": 200,
+                              "description": "Visible title of the step."
                             },
                             "screen": {
                               "type": "object",
@@ -5670,7 +5794,8 @@
                                 "key",
                                 "title"
                               ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
                             },
                             "when": {
                               "type": "object",
@@ -5692,13 +5817,15 @@
                                 "key",
                                 "value"
                               ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "Show this step only when the step `key` was answered with `value`."
                             },
                             "key": {
                               "type": "string",
                               "minLength": 1,
                               "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                              "pattern": "^[a-z0-9][a-z0-9_-]*$",
+                              "description": "Stable id of the step. Its answer or photos come back under this key."
                             },
                             "type": {
                               "type": "string",
@@ -5710,20 +5837,24 @@
                               "type": "string",
                               "enum": [
                                 "signature"
-                              ]
+                              ],
+                              "description": "`signature` shows a signature pad instead of a file picker."
                             },
                             "description": {
                               "type": "string",
                               "maxLength": 500,
-                              "default": ""
+                              "default": "",
+                              "description": "Instruction shown to the person."
                             },
                             "min": {
                               "type": "integer",
-                              "minimum": 0
+                              "minimum": 0,
+                              "description": "Minimum files. 0 makes the step optional."
                             },
                             "max": {
                               "type": "integer",
-                              "minimum": 1
+                              "minimum": 1,
+                              "description": "Maximum files."
                             },
                             "accept": {
                               "type": "array",
@@ -5744,13 +5875,15 @@
                                 "image/webp",
                                 "image/heic",
                                 "image/heif"
-                              ]
+                              ],
+                              "description": "Accepted media types."
                             },
                             "max_size_bytes": {
                               "type": "integer",
                               "minimum": 1,
                               "maximum": 26214400,
-                              "default": 10485760
+                              "default": 10485760,
+                              "description": "Maximum size per file, in bytes."
                             }
                           },
                           "required": [
@@ -5767,7 +5900,8 @@
                             "label": {
                               "type": "string",
                               "minLength": 1,
-                              "maxLength": 200
+                              "maxLength": 200,
+                              "description": "Visible title of the step."
                             },
                             "screen": {
                               "type": "object",
@@ -5792,7 +5926,8 @@
                                 "key",
                                 "title"
                               ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
                             },
                             "when": {
                               "type": "object",
@@ -5814,13 +5949,15 @@
                                 "key",
                                 "value"
                               ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "Show this step only when the step `key` was answered with `value`."
                             },
                             "key": {
                               "type": "string",
                               "minLength": 1,
                               "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                              "pattern": "^[a-z0-9][a-z0-9_-]*$",
+                              "description": "Stable id of the step. Its answer or photos come back under this key."
                             },
                             "type": {
                               "type": "string",
@@ -5831,21 +5968,25 @@
                             "description": {
                               "type": "string",
                               "maxLength": 500,
-                              "default": ""
+                              "default": "",
+                              "description": "Instruction shown to the person."
                             },
                             "min": {
                               "type": "integer",
-                              "minimum": 0
+                              "minimum": 0,
+                              "description": "Minimum clips. 0 makes the step optional."
                             },
                             "max": {
                               "type": "integer",
-                              "minimum": 1
+                              "minimum": 1,
+                              "description": "Maximum clips."
                             },
                             "max_duration_sec": {
                               "type": "integer",
                               "minimum": 1,
                               "maximum": 30,
-                              "default": 30
+                              "default": 30,
+                              "description": "Maximum length of each clip, in seconds."
                             }
                           },
                           "required": [
@@ -5862,7 +6003,8 @@
                             "label": {
                               "type": "string",
                               "minLength": 1,
-                              "maxLength": 200
+                              "maxLength": 200,
+                              "description": "Visible title of the step."
                             },
                             "screen": {
                               "type": "object",
@@ -5887,7 +6029,8 @@
                                 "key",
                                 "title"
                               ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
                             },
                             "when": {
                               "type": "object",
@@ -5909,13 +6052,15 @@
                                 "key",
                                 "value"
                               ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "Show this step only when the step `key` was answered with `value`."
                             },
                             "key": {
                               "type": "string",
                               "minLength": 1,
                               "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                              "pattern": "^[a-z0-9][a-z0-9_-]*$",
+                              "description": "Stable id of the step. Its answer or photos come back under this key."
                             },
                             "type": {
                               "type": "string",
@@ -5926,15 +6071,18 @@
                             "description": {
                               "type": "string",
                               "maxLength": 500,
-                              "default": ""
+                              "default": "",
+                              "description": "Instruction shown to the person."
                             },
                             "required": {
                               "type": "boolean",
-                              "default": true
+                              "default": true,
+                              "description": "Default true."
                             },
                             "multiple": {
                               "type": "boolean",
-                              "default": false
+                              "default": false,
+                              "description": "Allow picking more than one option."
                             },
                             "options": {
                               "type": "array",
@@ -5960,7 +6108,8 @@
                                 "additionalProperties": false
                               },
                               "minItems": 1,
-                              "maxItems": 50
+                              "maxItems": 50,
+                              "description": "Options to pick from, each with `key` and `label`."
                             }
                           },
                           "required": [
@@ -5976,7 +6125,8 @@
                             "label": {
                               "type": "string",
                               "minLength": 1,
-                              "maxLength": 200
+                              "maxLength": 200,
+                              "description": "Visible title of the step."
                             },
                             "screen": {
                               "type": "object",
@@ -6001,7 +6151,8 @@
                                 "key",
                                 "title"
                               ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
                             },
                             "when": {
                               "type": "object",
@@ -6023,13 +6174,15 @@
                                 "key",
                                 "value"
                               ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "Show this step only when the step `key` was answered with `value`."
                             },
                             "key": {
                               "type": "string",
                               "minLength": 1,
                               "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                              "pattern": "^[a-z0-9][a-z0-9_-]*$",
+                              "description": "Stable id of the step. Its answer or photos come back under this key."
                             },
                             "type": {
                               "type": "string",
@@ -6041,16 +6194,19 @@
                               "type": "string",
                               "enum": [
                                 "BR"
-                              ]
+                              ],
+                              "description": "`BR` shows Brazilian address fields."
                             },
                             "description": {
                               "type": "string",
                               "maxLength": 500,
-                              "default": ""
+                              "default": "",
+                              "description": "Instruction shown to the person."
                             },
                             "required": {
                               "type": "boolean",
-                              "default": true
+                              "default": true,
+                              "description": "Default true."
                             }
                           },
                           "required": [
@@ -6061,13 +6217,15 @@
                         }
                       ]
                     },
-                    "minItems": 1
+                    "minItems": 1,
+                    "description": "Steps every person goes through, in order."
                   },
                   "expires_in_seconds": {
                     "type": "integer",
                     "minimum": 60,
                     "maximum": 86400,
-                    "default": 3600
+                    "default": 3600,
+                    "description": "How long each verification minted from the link stays open, in seconds. Default 3600."
                   },
                   "status": {
                     "type": "string",
@@ -6075,24 +6233,28 @@
                       "draft",
                       "active"
                     ],
-                    "default": "active"
+                    "default": "active",
+                    "description": "`active` (default) publishes the link. `draft` only allows simulation."
                   },
                   "metadata": {
                     "type": "object",
                     "additionalProperties": {
                       "type": "string",
                       "maxLength": 500
-                    }
+                    },
+                    "description": "Key/value strings stamped on every verification from this template."
                   },
                   "expected_location": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 300
+                    "maxLength": 300,
+                    "description": "Street address every photo must be taken at. Turns on `location_match`."
                   },
                   "expected_object": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 200
+                    "maxLength": 200,
+                    "description": "What must appear in the photos, e.g. `\"car\"`. Turns on `object_match`."
                   },
                   "condition_aspects": {
                     "type": "array",
@@ -6102,7 +6264,8 @@
                       "maxLength": 40
                     },
                     "minItems": 1,
-                    "maxItems": 6
+                    "maxItems": 6,
+                    "description": "One to six aspects to score from 0 to 10. Turns on `condition`."
                   },
                   "expected_info": {
                     "type": "object",
@@ -6142,36 +6305,43 @@
                     "required": [
                       "shared"
                     ],
-                    "additionalProperties": false
+                    "additionalProperties": false,
+                    "description": "Structured alternative to `expected_location`, `expected_object` and `condition_aspects`. Send one form or the other."
                   },
                   "daily_cap": {
                     "type": "integer",
                     "minimum": 1,
-                    "maximum": 10000
+                    "maximum": 10000,
+                    "description": "Maximum verifications per day. Absent = no cap."
                   },
                   "total_cap": {
                     "type": "integer",
                     "minimum": 1,
-                    "maximum": 1000000
+                    "maximum": 1000000,
+                    "description": "Maximum verifications in total. Absent = no cap."
                   },
                   "brand_slug": {
                     "type": "string",
                     "minLength": 2,
                     "maxLength": 40,
-                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+                    "description": "Brand profile shown on the capture page. Absent = your default brand."
                   },
                   "notify_email": {
                     "type": "string",
                     "maxLength": 254,
-                    "format": "email"
+                    "format": "email",
+                    "description": "Email that receives each result. Inherited by every verification from this template."
                   },
                   "notify_subject_template": {
                     "type": "string",
-                    "minLength": 1
+                    "minLength": 1,
+                    "description": "Subject of the result email. `{variable}` placeholders allowed."
                   },
                   "notify_body_template": {
                     "type": "string",
-                    "minLength": 1
+                    "minLength": 1,
+                    "description": "Body of the result email. `{variable}` placeholders allowed."
                   },
                   "completion_message": {
                     "type": "string",
@@ -6194,7 +6364,8 @@
                     "required": [
                       "required"
                     ],
-                    "additionalProperties": false
+                    "additionalProperties": false,
+                    "description": "Which step identifies the person, and how to find their row in the connected database."
                   },
                   "database": {
                     "type": "object",
@@ -6232,10 +6403,12 @@
                       "database_id",
                       "column_for"
                     ],
-                    "additionalProperties": false
+                    "additionalProperties": false,
+                    "description": "Connected database: the table and which columns feed the checks."
                   },
                   "requires_location": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "description": "Require a GPS fix on the first photo of every run without comparing it to an address."
                   }
                 },
                 "required": [
@@ -6451,7 +6624,8 @@
                             "label": {
                               "type": "string",
                               "minLength": 1,
-                              "maxLength": 200
+                              "maxLength": 200,
+                              "description": "Visible title of the step."
                             },
                             "screen": {
                               "type": "object",
@@ -6476,7 +6650,8 @@
                                 "key",
                                 "title"
                               ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
                             },
                             "when": {
                               "type": "object",
@@ -6498,13 +6673,15 @@
                                 "key",
                                 "value"
                               ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "Show this step only when the step `key` was answered with `value`."
                             },
                             "key": {
                               "type": "string",
                               "minLength": 1,
                               "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                              "pattern": "^[a-z0-9][a-z0-9_-]*$",
+                              "description": "Stable id of the step. Its answer or photos come back under this key."
                             },
                             "type": {
                               "type": "string",
@@ -6516,18 +6693,22 @@
                             "description": {
                               "type": "string",
                               "maxLength": 500,
-                              "default": ""
+                              "default": "",
+                              "description": "Instruction shown to the person."
                             },
                             "min": {
                               "type": "integer",
-                              "minimum": 0
+                              "minimum": 0,
+                              "description": "Minimum photos. 0 makes the step optional."
                             },
                             "max": {
                               "type": "integer",
-                              "minimum": 1
+                              "minimum": 1,
+                              "description": "Maximum photos."
                             },
                             "allow_upload": {
-                              "type": "boolean"
+                              "type": "boolean",
+                              "description": "Also allow picking a file from the gallery instead of the camera."
                             },
                             "accept": {
                               "type": "array",
@@ -6541,17 +6722,20 @@
                                   "image/heif"
                                 ]
                               },
-                              "minItems": 1
+                              "minItems": 1,
+                              "description": "Accepted media types."
                             },
                             "max_size_bytes": {
                               "type": "integer",
                               "minimum": 1,
-                              "maximum": 26214400
+                              "maximum": 26214400,
+                              "description": "Maximum size per photo, in bytes."
                             },
                             "expected_object": {
                               "type": "string",
                               "minLength": 1,
-                              "maxLength": 200
+                              "maxLength": 200,
+                              "description": "What must appear in this photo. Overrides the verification-level value."
                             },
                             "condition_aspects": {
                               "type": "array",
@@ -6561,7 +6745,8 @@
                                 "maxLength": 40
                               },
                               "minItems": 1,
-                              "maxItems": 6
+                              "maxItems": 6,
+                              "description": "Aspects to score on this photo. Overrides the verification-level value."
                             }
                           },
                           "required": [
@@ -6577,7 +6762,8 @@
                             "label": {
                               "type": "string",
                               "minLength": 1,
-                              "maxLength": 200
+                              "maxLength": 200,
+                              "description": "Visible title of the step."
                             },
                             "screen": {
                               "type": "object",
@@ -6602,7 +6788,8 @@
                                 "key",
                                 "title"
                               ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
                             },
                             "when": {
                               "type": "object",
@@ -6624,13 +6811,15 @@
                                 "key",
                                 "value"
                               ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "Show this step only when the step `key` was answered with `value`."
                             },
                             "key": {
                               "type": "string",
                               "minLength": 1,
                               "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                              "pattern": "^[a-z0-9][a-z0-9_-]*$",
+                              "description": "Stable id of the step. Its answer or photos come back under this key."
                             },
                             "type": {
                               "type": "string",
@@ -6641,11 +6830,13 @@
                             "description": {
                               "type": "string",
                               "maxLength": 500,
-                              "default": ""
+                              "default": "",
+                              "description": "Instruction shown to the person."
                             },
                             "required": {
                               "type": "boolean",
-                              "default": true
+                              "default": true,
+                              "description": "Default true."
                             },
                             "validation": {
                               "type": "object",
@@ -6674,14 +6865,16 @@
                               "default": {
                                 "format": "free_text"
                               },
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "Length and format rules: `free_text`, `numeric_id`, `alphanumeric_id` or `email`."
                             },
                             "variant": {
                               "type": "string",
                               "enum": [
                                 "short",
                                 "long"
-                              ]
+                              ],
+                              "description": "`short` (one line) or `long`."
                             }
                           },
                           "required": [
@@ -6696,7 +6889,8 @@
                             "label": {
                               "type": "string",
                               "minLength": 1,
-                              "maxLength": 200
+                              "maxLength": 200,
+                              "description": "Visible title of the step."
                             },
                             "screen": {
                               "type": "object",
@@ -6721,7 +6915,8 @@
                                 "key",
                                 "title"
                               ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
                             },
                             "when": {
                               "type": "object",
@@ -6743,13 +6938,15 @@
                                 "key",
                                 "value"
                               ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "Show this step only when the step `key` was answered with `value`."
                             },
                             "key": {
                               "type": "string",
                               "minLength": 1,
                               "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                              "pattern": "^[a-z0-9][a-z0-9_-]*$",
+                              "description": "Stable id of the step. Its answer or photos come back under this key."
                             },
                             "type": {
                               "type": "string",
@@ -6761,20 +6958,24 @@
                               "type": "string",
                               "enum": [
                                 "signature"
-                              ]
+                              ],
+                              "description": "`signature` shows a signature pad instead of a file picker."
                             },
                             "description": {
                               "type": "string",
                               "maxLength": 500,
-                              "default": ""
+                              "default": "",
+                              "description": "Instruction shown to the person."
                             },
                             "min": {
                               "type": "integer",
-                              "minimum": 0
+                              "minimum": 0,
+                              "description": "Minimum files. 0 makes the step optional."
                             },
                             "max": {
                               "type": "integer",
-                              "minimum": 1
+                              "minimum": 1,
+                              "description": "Maximum files."
                             },
                             "accept": {
                               "type": "array",
@@ -6795,13 +6996,15 @@
                                 "image/webp",
                                 "image/heic",
                                 "image/heif"
-                              ]
+                              ],
+                              "description": "Accepted media types."
                             },
                             "max_size_bytes": {
                               "type": "integer",
                               "minimum": 1,
                               "maximum": 26214400,
-                              "default": 10485760
+                              "default": 10485760,
+                              "description": "Maximum size per file, in bytes."
                             }
                           },
                           "required": [
@@ -6818,7 +7021,8 @@
                             "label": {
                               "type": "string",
                               "minLength": 1,
-                              "maxLength": 200
+                              "maxLength": 200,
+                              "description": "Visible title of the step."
                             },
                             "screen": {
                               "type": "object",
@@ -6843,7 +7047,8 @@
                                 "key",
                                 "title"
                               ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
                             },
                             "when": {
                               "type": "object",
@@ -6865,13 +7070,15 @@
                                 "key",
                                 "value"
                               ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "Show this step only when the step `key` was answered with `value`."
                             },
                             "key": {
                               "type": "string",
                               "minLength": 1,
                               "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                              "pattern": "^[a-z0-9][a-z0-9_-]*$",
+                              "description": "Stable id of the step. Its answer or photos come back under this key."
                             },
                             "type": {
                               "type": "string",
@@ -6882,21 +7089,25 @@
                             "description": {
                               "type": "string",
                               "maxLength": 500,
-                              "default": ""
+                              "default": "",
+                              "description": "Instruction shown to the person."
                             },
                             "min": {
                               "type": "integer",
-                              "minimum": 0
+                              "minimum": 0,
+                              "description": "Minimum clips. 0 makes the step optional."
                             },
                             "max": {
                               "type": "integer",
-                              "minimum": 1
+                              "minimum": 1,
+                              "description": "Maximum clips."
                             },
                             "max_duration_sec": {
                               "type": "integer",
                               "minimum": 1,
                               "maximum": 30,
-                              "default": 30
+                              "default": 30,
+                              "description": "Maximum length of each clip, in seconds."
                             }
                           },
                           "required": [
@@ -6913,7 +7124,8 @@
                             "label": {
                               "type": "string",
                               "minLength": 1,
-                              "maxLength": 200
+                              "maxLength": 200,
+                              "description": "Visible title of the step."
                             },
                             "screen": {
                               "type": "object",
@@ -6938,7 +7150,8 @@
                                 "key",
                                 "title"
                               ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
                             },
                             "when": {
                               "type": "object",
@@ -6960,13 +7173,15 @@
                                 "key",
                                 "value"
                               ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "Show this step only when the step `key` was answered with `value`."
                             },
                             "key": {
                               "type": "string",
                               "minLength": 1,
                               "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                              "pattern": "^[a-z0-9][a-z0-9_-]*$",
+                              "description": "Stable id of the step. Its answer or photos come back under this key."
                             },
                             "type": {
                               "type": "string",
@@ -6977,15 +7192,18 @@
                             "description": {
                               "type": "string",
                               "maxLength": 500,
-                              "default": ""
+                              "default": "",
+                              "description": "Instruction shown to the person."
                             },
                             "required": {
                               "type": "boolean",
-                              "default": true
+                              "default": true,
+                              "description": "Default true."
                             },
                             "multiple": {
                               "type": "boolean",
-                              "default": false
+                              "default": false,
+                              "description": "Allow picking more than one option."
                             },
                             "options": {
                               "type": "array",
@@ -7011,7 +7229,8 @@
                                 "additionalProperties": false
                               },
                               "minItems": 1,
-                              "maxItems": 50
+                              "maxItems": 50,
+                              "description": "Options to pick from, each with `key` and `label`."
                             }
                           },
                           "required": [
@@ -7027,7 +7246,8 @@
                             "label": {
                               "type": "string",
                               "minLength": 1,
-                              "maxLength": 200
+                              "maxLength": 200,
+                              "description": "Visible title of the step."
                             },
                             "screen": {
                               "type": "object",
@@ -7052,7 +7272,8 @@
                                 "key",
                                 "title"
                               ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
                             },
                             "when": {
                               "type": "object",
@@ -7074,13 +7295,15 @@
                                 "key",
                                 "value"
                               ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "Show this step only when the step `key` was answered with `value`."
                             },
                             "key": {
                               "type": "string",
                               "minLength": 1,
                               "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
+                              "pattern": "^[a-z0-9][a-z0-9_-]*$",
+                              "description": "Stable id of the step. Its answer or photos come back under this key."
                             },
                             "type": {
                               "type": "string",
@@ -7092,16 +7315,19 @@
                               "type": "string",
                               "enum": [
                                 "BR"
-                              ]
+                              ],
+                              "description": "`BR` shows Brazilian address fields."
                             },
                             "description": {
                               "type": "string",
                               "maxLength": 500,
-                              "default": ""
+                              "default": "",
+                              "description": "Instruction shown to the person."
                             },
                             "required": {
                               "type": "boolean",
-                              "default": true
+                              "default": true,
+                              "description": "Default true."
                             }
                           },
                           "required": [
