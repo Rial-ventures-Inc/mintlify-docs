@@ -24,10 +24,10 @@
   "styling": {
     "codeblocks": "system"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/rial-isotype.svg",
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg",
+    "light": "/logo/rial-imagotype-light.svg",
+    "dark": "/logo/rial-imagotype-dark.svg",
     "href": "https://www.rial.io"
   },
   "navigation": {
