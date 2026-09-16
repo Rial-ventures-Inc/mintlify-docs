@@ -3156,7 +3156,7 @@
           "Verifications"
         ],
         "summary": "Create a verification",
-        "description": "Mints a verification the tenant's end-user redeems by submitting content against the returned `capture_url`. The configuration (capture spec, required fraud signals, optional tenant `context`, optional `webhook_url`, optional `notify_email`) is immutable after issue — to change anything, issue a new verification. When the request omits `notify_email`, the tenant's account-level default (configured from the dashboard's Integrations screen) is stamped into the config at mint time. An explicit request value always wins: a string targets that address, `notify_email: null` opts this verification out of email entirely. Changing the account default only affects future tokens.",
+        "description": "Create a verification and get the link to send. Its settings are fixed once created; to change them, create another.",
         "security": [
           {
             "bearerApiKey": []
@@ -3296,7 +3296,7 @@
           "Verifications"
         ],
         "summary": "List verifications",
-        "description": "Newest-first list, opaque-cursor paginated. `next_cursor` from the previous page round-trips back as `?cursor=`; absent means the list is exhausted.",
+        "description": "Newest first. Pass `next_cursor` back as `cursor` for the next page.",
         "security": [
           {
             "bearerApiKey": []
@@ -3582,7 +3582,7 @@
           "Verifications"
         ],
         "summary": "Get a verification",
-        "description": "Returns the verification and every capture submitted against it (inlined). Capture `image_url` fields are presigned with a 1-hour TTL — the dashboard can drop them into `<img src>` with no auth handshake. The S3 bucket policy itself stays private.",
+        "description": "The verification with its photos. Image URLs are signed and valid for one hour.",
         "security": [
           {
             "bearerApiKey": []
@@ -3684,7 +3684,7 @@
           "Verifications"
         ],
         "summary": "Get the share-safe result",
-        "description": "No auth required. Returns a **narrower** projection than `/v1/verifications/:id` — strips operator-only fields (attestation, telemetry, internal capture metadata). Audience is the public reader of `rial.io/v/:id` confirming a completed verification certificate.",
+        "description": "The share-safe view: status and verdict label, nothing else. No key needed.",
         "parameters": [
           {
             "schema": {
@@ -3754,7 +3754,7 @@
           "Verifications"
         ],
         "summary": "Get the event log",
-        "description": "Every domain event the worker recorded against this verification, in chronological order. Powers the dashboard \"Audit timeline\" card. Read-only.",
+        "description": "What happened to this verification, in order.",
         "security": [
           {
             "bearerApiKey": []
@@ -3860,7 +3860,7 @@
           "Verifications"
         ],
         "summary": "Finalize with a narrative",
-        "description": "Attaches the claimant's written `narrative` to the verification and closes the case. The narrative is an operator surface: it is stored and returned on the operator audience, never on the developer (API-key) one.",
+        "description": "Attach a written narrative and close the case.",
         "security": [
           {
             "bearerApiKey": []
@@ -4029,7 +4029,7 @@
           "Templates"
         ],
         "summary": "List templates",
-        "description": "Newest-first list of the tenant's published templates, each with live `started_total` / `started_today` counters.",
+        "description": "Your templates, newest first, with how many verifications each one has started.",
         "security": [
           {
             "bearerApiKey": []
@@ -4115,7 +4115,7 @@
           "Templates"
         ],
         "summary": "Publish a template",
-        "description": "Creates the template and its public link in one step — the link starts `active` (unless `status: \"paused\"` is sent) at `/l/{token}` — `public_url`, whose single path segment is a compact JWT carrying the org and template slugs (the legacy `/l/{org}/{slug}` keeps resolving). The published snapshot starts at `version: 1` (GET-83); every verification minted from the link records the version it ran against.",
+        "description": "Create a template and its permanent link in one call.",
         "security": [
           {
             "bearerApiKey": []
@@ -5220,7 +5220,7 @@
           "Templates"
         ],
         "summary": "Update a template",
-        "description": "Partial update. Two classes of field behave differently (GET-83):",
+        "description": "Change any part of a template. `status: \"paused\"` stops the link; `\"active\"` resumes it.",
         "security": [
           {
             "bearerApiKey": []
@@ -6324,7 +6324,7 @@
           "Templates"
         ],
         "summary": "Delete a template",
-        "description": "Deletes the record and frees the slug. The public link starts returning 404 immediately; verifications already minted from it are untouched.",
+        "description": "Delete the template. Its link stops working; verifications already created stay.",
         "security": [
           {
             "bearerApiKey": []
@@ -6417,7 +6417,7 @@
           "Templates"
         ],
         "summary": "Preview a CSV import",
-        "description": "Dry-run of `POST /v1/link-templates/{slug}/import` (GET-69/B6): parses the CSV, reports the resolved column mapping, row counts and per-row problems. Persists NOTHING — no job, no file, no worker trigger. The dashboard always calls this before submit so a bad file (wrong column, typo'd header) is caught before the 20%-invalid abort rule can kill a whole batch.",
+        "description": "Check a CSV before importing: column mapping, row counts and per-row problems. Changes nothing.",
         "security": [
           {
             "bearerApiKey": []
@@ -6632,7 +6632,7 @@
           "Templates"
         ],
         "summary": "Import a CSV",
-        "description": "Validates, persists an `ImportJob` + the raw CSV, and triggers the background worker — the 202 is a receipt, not a result: ZERO verifications are minted in this request. Poll `GET /v1/link-templates/imports/{jobId}` for progress.",
+        "description": "Import a CSV: one verification per row, created in the background. Poll the job for progress.",
         "security": [
           {
             "bearerApiKey": []
@@ -6835,7 +6835,7 @@
           "Templates"
         ],
         "summary": "Check an import",
-        "description": "Progress of an async CSV import: `processing` → `completed` | `failed` | `aborted`, with bounded per-row errors (`invalid_rows` is capped at import time so this response never grows unbounded).",
+        "description": "Progress of an import: processing, completed, failed or aborted, with the rows that failed.",
         "security": [
           {
             "bearerApiKey": []
@@ -6922,7 +6922,7 @@
           "Templates"
         ],
         "summary": "Simulate a template",
-        "description": "Mints ONE verification from the template's current snapshot, flagged `simulation: true` — the async capture→worker→verdict pipeline runs for real, but the run is excluded from billable side effects: it does NOT count toward `GET /v1/me/usage` and does NOT fire tenant notifications.",
+        "description": "Create one test verification from the template. It runs for real, is not billed and sends no notifications.",
         "security": [
           {
             "bearerApiKey": []
@@ -7047,7 +7047,7 @@
           "Databases"
         ],
         "summary": "List your databases",
-        "description": "Newest-first, each with its full `columns` + `rows` — callers can preview checks and seed batch imports without a per-cell round trip. The rows are tenant PII and never reach public verification reads.",
+        "description": "Your databases, with their columns and rows.",
         "security": [
           {
             "bearerApiKey": []
@@ -7129,7 +7129,7 @@
           "Databases"
         ],
         "summary": "Create a database from rows",
-        "description": "The body carries the ALREADY-PARSED table (`columns` + `rows`); the dashboard parses and previews the CSV client-side. Limits: 5000 rows, 60 columns, 500 chars per cell, 1 MB total.",
+        "description": "Create a database from columns and rows. Limits: 5000 rows, 60 columns, 500 characters per cell, 1 MB.",
         "security": [
           {
             "bearerApiKey": []
@@ -7307,7 +7307,7 @@
           "Databases"
         ],
         "summary": "Replace a database's rows",
-        "description": "Swaps the table WHOLE (name + columns + rows) under the same id — template bindings point at the id, so a re-upload must never rotate it. Bindings reference columns by NAME: a re-upload that keeps a column's name keeps every check pointed at it.",
+        "description": "Replace name, columns and rows under the same id. Templates keep pointing at it; columns are matched by name.",
         "security": [
           {
             "bearerApiKey": []
@@ -7543,7 +7543,8 @@
               }
             }
           }
-        }
+        },
+        "description": "Rename a database."
       }
     }
   },
