@@ -35,15 +35,13 @@ await sms.send(customer.phone, verification.captureUrl);
 
 const result = await rial.verifications.waitFor(verification.id);
 
-switch (result.verdict?.label) {
-  case 'verified':
-    return approve(result);
-  case 'suspicious':
-    return review(result, result.verdict.reasonCode);
-  default:
-    return reject(result);
+if (result.verdict?.rial) {
+  return approve(result);
 }
+return review(result, result.verdict?.signals); // e.g. ['screen_detected']
 ```
+
+Keep `verification.id` on your side: the API does not echo `metadata` back.
 
 `waitFor` polls until the verification is `completed`, `expired` or `failed`. It backs off on rate limits and gives up after fifteen minutes unless you pass `timeoutMs`.
 
@@ -63,14 +61,14 @@ app.post('/rial', async (req, res) => {
   const event = parseWebhookEvent(req.body);
 
   if (event.type === 'verification.completed') {
-    await claims.attachVerdict(event.verification.metadata.claimId, event.verification.verdict);
+    await claims.attachVerdict(event.verificationId, event.verdict);
   }
 
   res.sendStatus(200);
 });
 ```
 
-Two events arrive. `verification.created` carries the ids and the status. `verification.completed` adds the verdict, the captures and the answers; for anything else, call `verifications.get(event.verificationId)`.
+Two events arrive. `verification.created` carries the ids and the status. `verification.completed` adds the verdict in its detailed form (`label`, `score`, `reasonCode`, one entry per check), the captures and the answers. For anything else, call `verifications.get(event.verificationId)`.
 
 ## Reading results
 
@@ -78,7 +76,8 @@ Two events arrive. `verification.created` carries the ids and the status. `verif
 const verification = await rial.verifications.get('vfy_01H…');
 
 verification.status;                 // 'completed'
-verification.verdict?.label;         // 'verified'
+verification.verdict?.rial;          // true
+verification.verdict?.signals;       // []
 verification.objectMatch?.status;    // 'match'
 verification.locationMatch?.status;  // 'verified'
 verification.condition?.score;       // 8.5
@@ -95,7 +94,7 @@ for await (const verification of rial.verifications.iterate({ verdict: 'suspicio
 }
 ```
 
-`list` filters: `status`, `verdict`, `reasonCode`, `from`, `to`, `mode`, `metadata`, `limit`, `cursor`.
+`list` filters: `status`, `verdict`, `reasonCode`, `from`, `to`, `mode`, `metadata` (matches the values you sent at creation), `limit`, `cursor`.
 
 ## Templates
 
@@ -163,7 +162,7 @@ await rial.databases.rename(database.id, 'Insured fleet 2026');
 
 ## Audits: a photo you already have
 
-No link and no camera: you have the file, RIAL analyses it. Same verdict shape, minus what only a live capture can prove.
+No link and no camera: you have the file, RIAL analyses it. With no device behind the photo there is no `rial` flag; you get the checks that tripped.
 
 ```ts
 import { readFile } from 'node:fs/promises';
@@ -176,7 +175,7 @@ const result = await rial.audits.run({
   metadata: { claimId: 'CLM-9912' },
 });
 
-result.verdict?.label;        // 'verified' | 'suspicious' | 'failed'
+result.verdict?.signals;      // [] or e.g. [{ type: 'ai_detected', confidence: 0.81 }]
 result.objectMatch?.status;   // 'match'
 result.condition?.score;      // 7.5
 ```
@@ -228,4 +227,4 @@ try {
 | `audits.create(input)` | `POST /v1/verifications` in audit mode, then the upload |
 | `audits.run(input, options)` | `audits.create`, then `verifications.waitFor` |
 
-Inputs and results use camelCase and are typed from the same OpenAPI document as the [API reference](/api-reference), so they never drift.
+Inputs and results use camelCase and are typed from the same OpenAPI document as the [API reference](/api-reference), so they never drift. Exported types: `Verification`, `LiveVerdict`, `AuditVerdict`, `Step`, `LinkTemplate`, `ImportJob`, `Database`, `VerificationEvent`, `PublicVerification`, `WebhookEvent`, `WebhookVerdict`, and the inputs `CreateVerificationInput`, `PublishTemplateInput`, `ListVerificationsFilters`, `AuditInput`.
