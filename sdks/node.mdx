@@ -1,111 +1,207 @@
 ---
 title: "Node / TypeScript SDK"
-description: "The API from your backend, typed."
+description: "Create verifications, publish templates and read results from your backend."
 ---
 
 ```bash
 npm i @rial/sdk
 ```
 
-Node 20+. No dependencies. Every method is one public endpoint, with camelCase in and out; the SDK does the snake_case on the wire.
+Node 20 or newer. No dependencies.
+
+## Setup
 
 ```ts
 import { createRial } from '@rial/sdk';
 
 const rial = createRial({ apiKey: process.env.RIAL_API_KEY });
-
-const v = await rial.verifications.create({
-  steps: [{ key: 'front', type: 'image', description: 'Front of the car', expectedObject: 'car' }],
-  expectedLocation: 'Av. Córdoba 5635, Buenos Aires',
-});
-// send v.captureUrl
-
-const done = await rial.verifications.waitFor(v.id);
-done.verdict?.label; // 'verified' | 'suspicious' | 'failed'
 ```
 
-## Setup
+The key is your secret key from the dashboard (Settings → API). Keep it on the server.
+
+## Your first verdict
 
 ```ts
-createRial({
-  apiKey: 'rk_secret_…',      // required. Server only.
-  baseUrl?: 'https://api.rial.io',
-  timeoutMs?: 15_000,
-  fetch?: globalThis.fetch,   // inject for tests
+const verification = await rial.verifications.create({
+  steps: [
+    { key: 'front', type: 'image', description: 'Front of the car', expectedObject: 'car' },
+    { key: 'plate', type: 'image', description: 'License plate' },
+  ],
+  expectedLocation: 'Av. Córdoba 5635, Buenos Aires',
+  metadata: { claimId: 'CLM-9912' },
 });
+
+await sms.send(customer.phone, verification.captureUrl);
+
+const result = await rial.verifications.waitFor(verification.id);
+
+switch (result.verdict?.label) {
+  case 'verified':
+    return approve(result);
+  case 'suspicious':
+    return review(result, result.verdict.reasonCode);
+  default:
+    return reject(result);
+}
 ```
 
-## Verifications
+`waitFor` polls until the verification is `completed`, `expired` or `failed`. It backs off on rate limits and gives up after fifteen minutes unless you pass `timeoutMs`.
 
-| Method | Calls | Returns |
-| --- | --- | --- |
-| `verifications.create(input)` | `POST /v1/verifications` | `Verification` |
-| `verifications.get(id)` | `GET /v1/verifications/{id}` | `Verification` |
-| `verifications.list(filters?)` | `GET /v1/verifications` | `{ items, nextCursor }` |
-| `verifications.iterate(filters?)` | same, page by page | `AsyncIterable<Verification>` |
-| `verifications.waitFor(id, opts?)` | polls `GET …/{id}` | `Verification` once terminal |
-| `verifications.finalize(id, { narrative? })` | `POST …/{id}/finalize` | `Verification` |
-| `verifications.events(id)` | `GET …/{id}/events` | `Event[]` |
-| `verifications.publicResult(id)` | `GET …/{id}/public` (no auth) | `PublicVerification` |
+## Webhooks instead of waiting
 
-`create` takes exactly what the endpoint takes: `steps` or `maxCaptures`, `expiresInSeconds`, `signalsRequired`, `expectedObject`, `expectedLocation`, `conditionAspects`, `webhookUrl`, `metadata`, `notifyEmail`, `completionMessage`, `mode`, `brandSlug`.
-
-`list` filters: `limit`, `cursor`, `status`, `verdict`, `reasonCode`, `from`, `to`, `mode`, `metadata: { claimId: 'CLM-9912' }`.
-
-`waitFor` resolves when `status` is `completed`, `expired` or `failed` and, for `completed`, once `verdict` is present. Options: `intervalMs` (default 3000, backs off on 429), `timeoutMs` (default 15 minutes), `signal`. Prefer a webhook when you can.
-
-## Templates
-
-| Method | Calls | Returns |
-| --- | --- | --- |
-| `templates.list()` | `GET /v1/link-templates` | `LinkTemplate[]` |
-| `templates.publish(input)` | `POST /v1/link-templates` | `LinkTemplate` with `publicUrl` |
-| `templates.update(slug, patch)` | `PATCH /v1/link-templates/{slug}` | `LinkTemplate` |
-| `templates.delete(slug)` | `DELETE /v1/link-templates/{slug}` | `void` |
-| `templates.simulate(slug)` | `POST …/{slug}/simulate` | `{ verificationId, captureUrl }` |
-| `templates.previewCsv(slug, { csv, columnMapping? })` | `POST …/{slug}/import/preview` | preview with valid and invalid rows |
-| `templates.importCsv(slug, { csv, columnMapping? })` | `POST …/{slug}/import` | `ImportJob` |
-| `templates.getImport(jobId)` | `GET /v1/link-templates/imports/{jobId}` | `ImportJob` |
-| `templates.waitForImport(jobId, opts?)` | polls the above | `ImportJob` once finished |
-
-`publish` requires `slug`, `name`, `steps`. `update` takes any subset; `status: 'paused' | 'active'` pauses and resumes.
-
-## Databases
-
-| Method | Calls | Returns |
-| --- | --- | --- |
-| `databases.list()` | `GET /v1/databases` | `Database[]` |
-| `databases.create({ name, columns, rows, identifierColumn?, id? })` | `POST /v1/databases` | `Database` |
-| `databases.replace(id, { name, columns, rows, identifierColumn? })` | `PUT /v1/databases/{id}` | `Database` |
-| `databases.rename(id, name)` | `PATCH /v1/databases/{id}` | `Database` |
-
-## Webhooks
+```ts
+const verification = await rial.verifications.create({
+  maxCaptures: 1,
+  webhookUrl: 'https://api.acme.com/rial',
+});
+```
 
 ```ts
 import { parseWebhookEvent } from '@rial/sdk';
 
-app.post('/rial', (req, res) => {
-  const event = parseWebhookEvent(req.body); // typed: verification.created | verification.completed
-  if (event.type === 'verification.completed') event.verification.verdict?.label;
+app.post('/rial', async (req, res) => {
+  const event = parseWebhookEvent(req.body);
+
+  if (event.type === 'verification.completed') {
+    await claims.attachVerdict(event.verification.metadata.claimId, event.verification.verdict);
+  }
+
   res.sendStatus(200);
 });
 ```
 
-## Errors
+Two events arrive: `verification.created` and `verification.completed`. Both carry the full verification.
 
-Every non-2xx response throws `RialError`:
+## Reading results
 
 ```ts
-try {
-  await rial.verifications.get('vfy_…');
-} catch (e) {
-  if (e instanceof RialError) e.status; // 404
-  if (e instanceof RialError) e.code;   // 'not_found', 'slug_taken', 'rate_limited', …
+const verification = await rial.verifications.get('vfy_01H…');
+
+verification.status;                 // 'completed'
+verification.verdict?.label;         // 'verified'
+verification.objectMatch?.status;    // 'match'
+verification.locationMatch?.status;  // 'verified'
+verification.condition?.score;       // 8.5
+```
+
+```ts
+const page = await rial.verifications.list({ status: 'completed', limit: 50 });
+const next = await rial.verifications.list({ cursor: page.nextCursor });
+```
+
+```ts
+for await (const verification of rial.verifications.iterate({ verdict: 'suspicious' })) {
+  await queue.push(verification.id);
 }
 ```
 
-Reads (`GET`) retry on network errors, `429` and `5xx` with backoff. Writes never retry on their own.
+`list` filters: `status`, `verdict`, `reasonCode`, `from`, `to`, `mode`, `metadata`, `limit`, `cursor`.
 
-## Types
+## Templates
 
-Everything the API returns is exported: `Verification`, `Verdict`, `Signal`, `ObjectMatch`, `LocationMatch`, `Condition`, `Step`, `LinkTemplate`, `ImportJob`, `Database`, `Event`, `PublicVerification`, plus the inputs `CreateVerificationInput`, `PublishTemplateInput`, `ListVerificationsFilters`. Generated from the same OpenAPI document as this reference, so they never drift.
+A template is a set of steps published once, with a permanent link.
+
+```ts
+const template = await rial.templates.publish({
+  slug: 'car-intake',
+  name: 'Car intake',
+  steps: [
+    { key: 'front', type: 'image', description: 'Front of the car', expectedObject: 'car' },
+    { key: 'odometer', type: 'image', description: 'Odometer' },
+    { key: 'plate', type: 'text', description: 'License plate number' },
+  ],
+  expiresInSeconds: 86_400,
+});
+
+template.publicUrl;  // send this to anyone; each person gets their own verification
+```
+
+```ts
+await rial.templates.update('car-intake', { status: 'paused' });
+await rial.templates.update('car-intake', { status: 'active' });
+await rial.templates.delete('car-intake');
+```
+
+```ts
+const test = await rial.templates.simulate('car-intake');
+test.captureUrl;  // a real run that is not billed and sends no notifications
+```
+
+### One verification per row
+
+```ts
+const preview = await rial.templates.previewCsv('car-intake', { csv });
+
+if (preview.invalidRowsTotal > 0) {
+  throw new Error(`${preview.invalidRowsTotal} rows need fixing`);
+}
+
+const job = await rial.templates.importCsv('car-intake', { csv });
+const finished = await rial.templates.waitForImport(job.id);
+
+finished.importedRows;  // one verification created per row
+```
+
+## Databases
+
+Rows your templates compare against: a policy number the person types finds their row, and the expected location or object come from it.
+
+```ts
+const database = await rial.databases.create({
+  name: 'Insured fleet',
+  columns: ['policy', 'plate', 'address'],
+  rows: [
+    ['POL-001', 'AB123CD', 'Av. Córdoba 5635, Buenos Aires'],
+    ['POL-002', 'EF456GH', 'Av. Santa Fe 1200, Buenos Aires'],
+  ],
+  identifierColumn: 'policy',
+});
+
+await rial.databases.replace(database.id, { name: 'Insured fleet', columns, rows });
+await rial.databases.rename(database.id, 'Insured fleet 2026');
+```
+
+## Errors
+
+```ts
+import { RialError } from '@rial/sdk';
+
+try {
+  await rial.templates.publish({ slug: 'car-intake', name: 'Car intake', steps });
+} catch (error) {
+  if (error instanceof RialError && error.code === 'slug_taken') {
+    return rial.templates.update('car-intake', { steps });
+  }
+  throw error;
+}
+```
+
+`RialError` carries `status`, `code` and `message`. Reads retry on network errors, `429` and `5xx`; writes never retry on their own.
+
+## Reference
+
+| Method | Endpoint |
+| --- | --- |
+| `verifications.create(input)` | `POST /v1/verifications` |
+| `verifications.get(id)` | `GET /v1/verifications/{id}` |
+| `verifications.list(filters)` | `GET /v1/verifications` |
+| `verifications.iterate(filters)` | `GET /v1/verifications`, page by page |
+| `verifications.waitFor(id, options)` | `GET /v1/verifications/{id}`, polled |
+| `verifications.finalize(id, { narrative })` | `POST /v1/verifications/{id}/finalize` |
+| `verifications.events(id)` | `GET /v1/verifications/{id}/events` |
+| `verifications.publicResult(id)` | `GET /v1/verifications/{id}/public` |
+| `templates.list()` | `GET /v1/link-templates` |
+| `templates.publish(input)` | `POST /v1/link-templates` |
+| `templates.update(slug, patch)` | `PATCH /v1/link-templates/{slug}` |
+| `templates.delete(slug)` | `DELETE /v1/link-templates/{slug}` |
+| `templates.simulate(slug)` | `POST /v1/link-templates/{slug}/simulate` |
+| `templates.previewCsv(slug, input)` | `POST /v1/link-templates/{slug}/import/preview` |
+| `templates.importCsv(slug, input)` | `POST /v1/link-templates/{slug}/import` |
+| `templates.getImport(jobId)` | `GET /v1/link-templates/imports/{jobId}` |
+| `templates.waitForImport(jobId, options)` | `GET /v1/link-templates/imports/{jobId}`, polled |
+| `databases.list()` | `GET /v1/databases` |
+| `databases.create(input)` | `POST /v1/databases` |
+| `databases.replace(id, input)` | `PUT /v1/databases/{id}` |
+| `databases.rename(id, name)` | `PATCH /v1/databases/{id}` |
+
+Inputs and results use camelCase and are typed from the same OpenAPI document as the [API reference](/api-reference), so they never drift.
