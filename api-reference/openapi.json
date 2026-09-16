@@ -3155,7 +3155,7 @@
         "tags": [
           "Verifications"
         ],
-        "summary": "Issue a new verification token",
+        "summary": "Create a verification",
         "description": "Mints a verification the tenant's end-user redeems by submitting content against the returned `capture_url`. The configuration (capture spec, required fraud signals, optional tenant `context`, optional `webhook_url`, optional `notify_email`) is immutable after issue — to change anything, issue a new verification. When the request omits `notify_email`, the tenant's account-level default (configured from the dashboard's Integrations screen) is stamped into the config at mint time. An explicit request value always wins: a string targets that address, `notify_email: null` opts this verification out of email entirely. Changing the account default only affects future tokens.",
         "security": [
           {
@@ -3295,7 +3295,7 @@
         "tags": [
           "Verifications"
         ],
-        "summary": "List (and search) tenant verifications, newest first",
+        "summary": "List verifications",
         "description": "Newest-first list, opaque-cursor paginated. `next_cursor` from the previous page round-trips back as `?cursor=`; absent means the list is exhausted.",
         "security": [
           {
@@ -3581,7 +3581,7 @@
         "tags": [
           "Verifications"
         ],
-        "summary": "Fetch a verification with its captures",
+        "summary": "Get a verification",
         "description": "Returns the verification and every capture submitted against it (inlined). Capture `image_url` fields are presigned with a 1-hour TTL — the dashboard can drop them into `<img src>` with no auth handshake. The S3 bucket policy itself stays private.",
         "security": [
           {
@@ -3683,7 +3683,7 @@
         "tags": [
           "Verifications"
         ],
-        "summary": "Public verification projection for the certificate page",
+        "summary": "Get the share-safe result",
         "description": "No auth required. Returns a **narrower** projection than `/v1/verifications/:id` — strips operator-only fields (attestation, telemetry, internal capture metadata). Audience is the public reader of `rial.io/v/:id` confirming a completed verification certificate.",
         "parameters": [
           {
@@ -3753,7 +3753,7 @@
         "tags": [
           "Verifications"
         ],
-        "summary": "Audit timeline for a verification",
+        "summary": "Get the event log",
         "description": "Every domain event the worker recorded against this verification, in chronological order. Powers the dashboard \"Audit timeline\" card. Read-only.",
         "security": [
           {
@@ -3859,7 +3859,7 @@
         "tags": [
           "Verifications"
         ],
-        "summary": "Close a verification with the claimant narrative",
+        "summary": "Finalize with a narrative",
         "description": "Attaches the claimant's written `narrative` to the verification and closes the case. The narrative is an operator surface: it is stored and returned on the operator audience, never on the developer (API-key) one.",
         "security": [
           {
@@ -4023,420 +4023,12 @@
         }
       }
     },
-    "/v1/links/c/{code}": {
-      "get": {
-        "operationId": "getPublicLinkByCode",
-        "tags": [
-          "Templates"
-        ],
-        "security": [],
-        "summary": "Resolve a permanent short template link",
-        "description": "Resolves the opaque 10-character code in `/l/{code}`. Returns the slug landing payload plus `org` and `tpl` for the existing start endpoint. Paused links return 200 with status `paused`. Codes never expire or change on template rename. No state token is issued.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "pattern": "^[0-9a-hjkmnp-tv-z]{10}$",
-              "example": "7k3mq9xh2v"
-            },
-            "required": true,
-            "name": "code",
-            "in": "path"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Template landing and slugs for starting a verification.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "org_slug": {
-                      "type": "string",
-                      "minLength": 2,
-                      "maxLength": 40,
-                      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
-                    },
-                    "template_slug": {
-                      "type": "string",
-                      "minLength": 2,
-                      "maxLength": 40,
-                      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
-                    },
-                    "short_code": {
-                      "type": "string",
-                      "pattern": "^[0-9a-hjkmnp-tv-z]{10}$"
-                    },
-                    "tenant_name": {
-                      "type": "string"
-                    },
-                    "template_name": {
-                      "type": "string"
-                    },
-                    "status": {
-                      "type": "string",
-                      "enum": [
-                        "active",
-                        "paused"
-                      ]
-                    },
-                    "steps_count": {
-                      "type": "integer",
-                      "minimum": 0
-                    },
-                    "per_person_preload": {
-                      "type": "string",
-                      "enum": [
-                        "not_available"
-                      ]
-                    },
-                    "branding": {
-                      "type": "object",
-                      "properties": {
-                        "display_name": {
-                          "type": "string",
-                          "minLength": 1,
-                          "maxLength": 80
-                        },
-                        "theme": {
-                          "type": "string",
-                          "enum": [
-                            "light",
-                            "dark"
-                          ]
-                        },
-                        "colors": {
-                          "type": "object",
-                          "properties": {
-                            "accent": {
-                              "type": "string",
-                              "pattern": "^#[0-9a-f]{6}$"
-                            },
-                            "accent_soft": {
-                              "type": "string",
-                              "pattern": "^#[0-9a-f]{6}$"
-                            },
-                            "background": {
-                              "type": "string",
-                              "pattern": "^#[0-9a-f]{6}$"
-                            },
-                            "foreground": {
-                              "type": "string",
-                              "pattern": "^#[0-9a-f]{6}$"
-                            },
-                            "foreground_muted": {
-                              "type": "string",
-                              "pattern": "^#[0-9a-f]{6}$"
-                            }
-                          },
-                          "required": [
-                            "accent"
-                          ],
-                          "additionalProperties": false
-                        },
-                        "typography": {
-                          "type": "object",
-                          "properties": {
-                            "font_family": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 80,
-                              "pattern": "^[A-Za-z0-9' -]+$"
-                            }
-                          },
-                          "additionalProperties": false
-                        },
-                        "logo": {
-                          "type": "object",
-                          "properties": {
-                            "url": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 2048
-                            },
-                            "alt": {
-                              "type": "string",
-                              "maxLength": 120
-                            }
-                          },
-                          "required": [
-                            "url"
-                          ],
-                          "additionalProperties": false
-                        }
-                      },
-                      "required": [
-                        "display_name",
-                        "theme",
-                        "colors"
-                      ],
-                      "additionalProperties": false
-                    },
-                    "identification": {
-                      "type": "object",
-                      "properties": {
-                        "required": {
-                          "type": "boolean"
-                        },
-                        "label": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "required"
-                      ]
-                    },
-                    "org": {
-                      "type": "string",
-                      "minLength": 2,
-                      "maxLength": 40,
-                      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
-                    },
-                    "tpl": {
-                      "type": "string",
-                      "minLength": 2,
-                      "maxLength": 40,
-                      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
-                    }
-                  },
-                  "required": [
-                    "org_slug",
-                    "template_slug",
-                    "tenant_name",
-                    "template_name",
-                    "status",
-                    "steps_count",
-                    "per_person_preload",
-                    "org",
-                    "tpl"
-                  ]
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Uniform not found response for unknown links, drafts and unavailable tenants.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/links/{org}/{tpl}": {
-      "get": {
-        "operationId": "getPublicLink",
-        "tags": [
-          "Templates"
-        ],
-        "security": [],
-        "summary": "Resolve a template link by slugs",
-        "description": "Also used by legacy `/l/{org}/{tpl}` links and both permanent JWT link vintages. Previous template slugs remain aliases after a rename. When assigned, `short_code` is the stable resume identity shared by all link shapes.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "minLength": 2,
-              "maxLength": 40,
-              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
-            },
-            "required": true,
-            "name": "org",
-            "in": "path"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "minLength": 2,
-              "maxLength": 40,
-              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
-            },
-            "required": true,
-            "name": "tpl",
-            "in": "path"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Template landing.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "org_slug": {
-                      "type": "string",
-                      "minLength": 2,
-                      "maxLength": 40,
-                      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
-                    },
-                    "template_slug": {
-                      "type": "string",
-                      "minLength": 2,
-                      "maxLength": 40,
-                      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
-                    },
-                    "short_code": {
-                      "type": "string",
-                      "pattern": "^[0-9a-hjkmnp-tv-z]{10}$"
-                    },
-                    "tenant_name": {
-                      "type": "string"
-                    },
-                    "template_name": {
-                      "type": "string"
-                    },
-                    "status": {
-                      "type": "string",
-                      "enum": [
-                        "active",
-                        "paused"
-                      ]
-                    },
-                    "steps_count": {
-                      "type": "integer",
-                      "minimum": 0
-                    },
-                    "per_person_preload": {
-                      "type": "string",
-                      "enum": [
-                        "not_available"
-                      ]
-                    },
-                    "branding": {
-                      "type": "object",
-                      "properties": {
-                        "display_name": {
-                          "type": "string",
-                          "minLength": 1,
-                          "maxLength": 80
-                        },
-                        "theme": {
-                          "type": "string",
-                          "enum": [
-                            "light",
-                            "dark"
-                          ]
-                        },
-                        "colors": {
-                          "type": "object",
-                          "properties": {
-                            "accent": {
-                              "type": "string",
-                              "pattern": "^#[0-9a-f]{6}$"
-                            },
-                            "accent_soft": {
-                              "type": "string",
-                              "pattern": "^#[0-9a-f]{6}$"
-                            },
-                            "background": {
-                              "type": "string",
-                              "pattern": "^#[0-9a-f]{6}$"
-                            },
-                            "foreground": {
-                              "type": "string",
-                              "pattern": "^#[0-9a-f]{6}$"
-                            },
-                            "foreground_muted": {
-                              "type": "string",
-                              "pattern": "^#[0-9a-f]{6}$"
-                            }
-                          },
-                          "required": [
-                            "accent"
-                          ],
-                          "additionalProperties": false
-                        },
-                        "typography": {
-                          "type": "object",
-                          "properties": {
-                            "font_family": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 80,
-                              "pattern": "^[A-Za-z0-9' -]+$"
-                            }
-                          },
-                          "additionalProperties": false
-                        },
-                        "logo": {
-                          "type": "object",
-                          "properties": {
-                            "url": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 2048
-                            },
-                            "alt": {
-                              "type": "string",
-                              "maxLength": 120
-                            }
-                          },
-                          "required": [
-                            "url"
-                          ],
-                          "additionalProperties": false
-                        }
-                      },
-                      "required": [
-                        "display_name",
-                        "theme",
-                        "colors"
-                      ],
-                      "additionalProperties": false
-                    },
-                    "identification": {
-                      "type": "object",
-                      "properties": {
-                        "required": {
-                          "type": "boolean"
-                        },
-                        "label": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "required"
-                      ]
-                    }
-                  },
-                  "required": [
-                    "org_slug",
-                    "template_slug",
-                    "tenant_name",
-                    "template_name",
-                    "status",
-                    "steps_count",
-                    "per_person_preload"
-                  ]
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Uniform not found response for unknown links, drafts and unavailable tenants.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/v1/link-templates": {
       "get": {
         "tags": [
           "Templates"
         ],
-        "summary": "List published link templates",
+        "summary": "List templates",
         "description": "Newest-first list of the tenant's published templates, each with live `started_total` / `started_today` counters.",
         "security": [
           {
@@ -4522,7 +4114,7 @@
         "tags": [
           "Templates"
         ],
-        "summary": "Publish a link template",
+        "summary": "Publish a template",
         "description": "Creates the template and its public link in one step — the link starts `active` (unless `status: \"paused\"` is sent) at `/l/{token}` — `public_url`, whose single path segment is a compact JWT carrying the org and template slugs (the legacy `/l/{org}/{slug}` keeps resolving). The published snapshot starts at `version: 1` (GET-83); every verification minted from the link records the version it ran against.",
         "security": [
           {
@@ -5627,7 +5219,7 @@
         "tags": [
           "Templates"
         ],
-        "summary": "Update a template (pause/resume, caps, republish snapshot)",
+        "summary": "Update a template",
         "description": "Partial update. Two classes of field behave differently (GET-83):",
         "security": [
           {
@@ -6731,7 +6323,7 @@
         "tags": [
           "Templates"
         ],
-        "summary": "Revoke a template",
+        "summary": "Delete a template",
         "description": "Deletes the record and frees the slug. The public link starts returning 404 immediately; verifications already minted from it are untouched.",
         "security": [
           {
@@ -6824,7 +6416,7 @@
         "tags": [
           "Templates"
         ],
-        "summary": "Preview a CSV batch import",
+        "summary": "Preview a CSV import",
         "description": "Dry-run of `POST /v1/link-templates/{slug}/import` (GET-69/B6): parses the CSV, reports the resolved column mapping, row counts and per-row problems. Persists NOTHING — no job, no file, no worker trigger. The dashboard always calls this before submit so a bad file (wrong column, typo'd header) is caught before the 20%-invalid abort rule can kill a whole batch.",
         "security": [
           {
@@ -7039,7 +6631,7 @@
         "tags": [
           "Templates"
         ],
-        "summary": "Submit a CSV batch import (async)",
+        "summary": "Import a CSV",
         "description": "Validates, persists an `ImportJob` + the raw CSV, and triggers the background worker — the 202 is a receipt, not a result: ZERO verifications are minted in this request. Poll `GET /v1/link-templates/imports/{jobId}` for progress.",
         "security": [
           {
@@ -7242,7 +6834,7 @@
         "tags": [
           "Templates"
         ],
-        "summary": "Poll an import job",
+        "summary": "Check an import",
         "description": "Progress of an async CSV import: `processing` → `completed` | `failed` | `aborted`, with bounded per-row errors (`invalid_rows` is capped at import time so this response never grows unbounded).",
         "security": [
           {
@@ -7329,7 +6921,7 @@
         "tags": [
           "Templates"
         ],
-        "summary": "Simulate the template (mint a sandbox verification)",
+        "summary": "Simulate a template",
         "description": "Mints ONE verification from the template's current snapshot, flagged `simulation: true` — the async capture→worker→verdict pipeline runs for real, but the run is excluded from billable side effects: it does NOT count toward `GET /v1/me/usage` and does NOT fire tenant notifications.",
         "security": [
           {
