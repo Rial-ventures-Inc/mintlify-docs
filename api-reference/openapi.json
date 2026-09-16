@@ -767,8 +767,7 @@
                     "screen",
                     "ai",
                     "reverse",
-                    "context",
-                    "depth"
+                    "context"
                   ],
                   "description": "A fraud-signal the tenant requires for the verification to count as complete."
                 }
@@ -1171,48 +1170,6 @@
                       }
                     ]
                   },
-                  "depth": {
-                    "anyOf": [
-                      {
-                        "type": "object",
-                        "properties": {
-                          "source": {
-                            "type": "string"
-                          },
-                          "confidence": {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          }
-                        },
-                        "required": [
-                          "source",
-                          "confidence"
-                        ]
-                      },
-                      {
-                        "type": "object",
-                        "properties": {
-                          "status": {
-                            "type": "string",
-                            "enum": [
-                              "not_applicable"
-                            ]
-                          },
-                          "reason": {
-                            "type": "string",
-                            "enum": [
-                              "uploaded_content"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "status",
-                          "reason"
-                        ]
-                      }
-                    ]
-                  },
                   "provenance": {
                     "anyOf": [
                       {
@@ -1279,8 +1236,7 @@
                   "screen_detected",
                   "ai_generated",
                   "context_mismatch",
-                  "reverse_search_match",
-                  "depth_anomaly"
+                  "reverse_search_match"
                 ],
                 "description": "Which signal drove a non-`verified` label, in priority order (screen > AI > context > reverse search > depth) when more than one tripped. Absent on `verified` verdicts."
               }
@@ -2293,8 +2249,7 @@
                 "screen",
                 "ai",
                 "reverse",
-                "context",
-                "depth"
+                "context"
               ]
             },
             "minItems": 1,
@@ -3343,8 +3298,7 @@
                 "screen_detected",
                 "ai_generated",
                 "context_mismatch",
-                "reverse_search_match",
-                "depth_anomaly"
+                "reverse_search_match"
               ],
               "description": "Exact match on `verdict.reason_code`. Verifications with no verdict, or a `verified` verdict, never match."
             },

@@ -38,4 +38,17 @@ const walk = (node) => {
   }
 };
 walk(spec.components ?? {});
+
+// The depth signal is not offered to integrators: drop it from every enum and
+// the verdict signals shape, wherever it appears.
+const DEPTH = new Set(['depth', 'depth_anomaly']);
+const scrub = (node) => {
+  if (Array.isArray(node)) return node.forEach(scrub);
+  if (node && typeof node === 'object') {
+    if (Array.isArray(node.enum)) node.enum = node.enum.filter((v) => !DEPTH.has(v));
+    if (node.properties && typeof node.properties === 'object') delete node.properties.depth;
+    Object.values(node).forEach(scrub);
+  }
+};
+scrub(spec);
 writeFileSync(dst, JSON.stringify(spec, null, 2) + '\n');
