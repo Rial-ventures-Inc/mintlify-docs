@@ -15,36 +15,27 @@ pending → partially_captured → completed | expired | failed
 
 ```json
 {
-  "verdict": {
-    "label": "suspicious",
-    "score": 0.82,
-    "reason_code": "screen_detected",
-    "signals": {
-      "screen_detection": { "screen_detected": true, "confidence": 0.94 },
-      "ai_detection": { "label": "likely_human", "confidence": 0.88 }
-    }
-  }
+  "verdict": { "rial": false, "signals": ["screen_detected"] }
 }
 ```
 
 | Field | Meaning |
 | --- | --- |
-| `label` | `verified`, `suspicious` or `failed`. **Branch on this.** |
-| `reason_code` | Why it isn't `verified`: `screen_detected`, `ai_generated`, `context_mismatch`, `reverse_search_match`. |
-| `score` | Confidence, 0 to 1. Show it; don't threshold it. |
-| `signals` | The evidence behind the label, one entry per check you asked for. |
+| `rial` | `true` when no check tripped. **Branch on this.** |
+| `signals` | The checks that tripped: `screen_detected`, `ai_detected`, `found_online`. Empty when `rial` is `true`. |
 
 ## Signals
 
 Ask for them with `signals_required` when you create the verification.
 
-| Signal | Answers |
-| --- | --- |
-| `screen` | Is this a photo of a screen? |
-| `ai` | Does this look AI-generated? |
-| `reverse` | Does this image already exist online? |
+| You ask for | It answers | It reports |
+| --- | --- | --- |
+| `screen` | Is this a photo of a screen? | `screen_detected` |
+| `ai` | Does this look AI-generated? | `ai_detected` |
+| `reverse` | Does this image already exist online? | `found_online` |
+| `context` | Does it show what `context` describes? | folds into `rial` |
 
-A photo that was uploaded from the gallery instead of captured live reports `{ "status": "not_applicable", "reason": "uploaded_content" }` on the checks that need a live camera. That is never a failure.
+A photo uploaded from the gallery instead of captured live skips the checks that need a live camera; that never counts as a failure.
 
 ## Extra checks
 
@@ -62,4 +53,12 @@ Set `expected_object` or `condition_aspects` on an `image` step instead of the w
 
 A **verification** is a photo taken live, right now, through the link or an SDK. Its verdict is backed by the device.
 
-An **audit** (`"mode": "audit"`) analyses a photo you already have. Same response shape, but no device stood behind it: read the label as a strong signal, not as proof. Audit uploads go through the SDKs, which are available by request — write to [ulises@rial.io](mailto:ulises@rial.io?subject=Audit%20access).
+An **audit** (`"mode": "audit"`) analyses a photo you already have. No device stood behind it, so there is no `rial`: the verdict lists the checks that tripped, with a confidence where the model gives one, for you to weigh.
+
+```json
+{
+  "verdict": { "signals": [{ "type": "ai_detected", "confidence": 0.81 }] }
+}
+```
+
+Audit uploads go through the SDKs — the [Node SDK](/sdks/node) does it in one call.

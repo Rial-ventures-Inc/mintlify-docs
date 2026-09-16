@@ -26,7 +26,7 @@ Base URL: `https://api.rial.io`
     { "id": "vfy_01H...", "capture_url": "https://verify.rial.io/v/...", "status": "pending" }
     ```
 
-    Send `capture_url` to the person. No app, no account: it opens in their phone's browser and walks them through the photo.
+    Keep the `id`: it is how you find this verification later. Send `capture_url` to the person. No app, no account: it opens in their phone's browser and walks them through the photo.
   </Step>
 
   <Step title="Read the verdict">
@@ -38,11 +38,11 @@ Base URL: `https://api.rial.io`
     ```json
     {
       "status": "completed",
-      "verdict": { "label": "verified", "score": 0.97 }
+      "verdict": { "rial": true, "signals": [] }
     }
     ```
 
-    `label` is what you branch on: `verified`, `suspicious` or `failed`. No `verdict` yet means analysis is still running.
+    `rial` is what you branch on. When it is `false`, `signals` says why: `screen_detected`, `ai_detected` or `found_online`. No `verdict` yet means analysis is still running.
   </Step>
 </Steps>
 

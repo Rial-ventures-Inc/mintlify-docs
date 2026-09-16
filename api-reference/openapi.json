@@ -42,7 +42,7 @@
       }
     },
     "schemas": {
-      "Verification": {
+      "DeveloperVerification": {
         "type": "object",
         "properties": {
           "id": {
@@ -77,1193 +77,212 @@
             "type": "integer",
             "minimum": 0
           },
-          "config": {
-            "type": "object",
-            "properties": {
-              "max_captures": {
-                "type": "integer",
-                "minimum": 1,
-                "maximum": 20,
-                "description": "Derived total capacity (sum of steps[].max). `steps` is the authoritative spec."
-              },
-              "steps": {
-                "type": "array",
-                "items": {
-                  "anyOf": [
-                    {
-                      "type": "object",
-                      "properties": {
-                        "label": {
-                          "type": "string",
-                          "minLength": 1,
-                          "maxLength": 200,
-                          "description": "Visible title of the step."
-                        },
-                        "screen": {
-                          "type": "object",
-                          "properties": {
-                            "key": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
-                            },
-                            "title": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 120
-                            },
-                            "description": {
-                              "type": "string",
-                              "maxLength": 8000
-                            }
-                          },
-                          "required": [
-                            "key",
-                            "title"
-                          ],
-                          "additionalProperties": false,
-                          "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
-                        },
-                        "when": {
-                          "type": "object",
-                          "properties": {
-                            "key": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
-                            },
-                            "value": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
-                            }
-                          },
-                          "required": [
-                            "key",
-                            "value"
-                          ],
-                          "additionalProperties": false,
-                          "description": "Show this step only when the step `key` was answered with `value`."
-                        },
-                        "key": {
-                          "type": "string",
-                          "minLength": 1,
-                          "maxLength": 64,
-                          "pattern": "^[a-z0-9][a-z0-9_-]*$",
-                          "description": "Stable id of the step. Its answer or photos come back under this key."
-                        },
-                        "type": {
-                          "type": "string",
-                          "enum": [
-                            "choice"
-                          ]
-                        },
-                        "description": {
-                          "type": "string",
-                          "maxLength": 500,
-                          "default": "",
-                          "description": "Instruction shown to the person."
-                        },
-                        "required": {
-                          "type": "boolean",
-                          "default": true,
-                          "description": "Default true."
-                        },
-                        "multiple": {
-                          "type": "boolean",
-                          "default": false,
-                          "description": "Allow picking more than one option."
-                        },
-                        "options": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "key": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 64,
-                                "pattern": "^[a-z0-9][a-z0-9_-]*$"
-                              },
-                              "label": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 500
-                              }
-                            },
-                            "required": [
-                              "key",
-                              "label"
-                            ],
-                            "additionalProperties": false
-                          },
-                          "minItems": 1,
-                          "maxItems": 50,
-                          "description": "Options to pick from, each with `key` and `label`."
-                        }
-                      },
-                      "required": [
-                        "key",
-                        "type",
-                        "options"
-                      ],
-                      "additionalProperties": false
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "label": {
-                          "type": "string",
-                          "minLength": 1,
-                          "maxLength": 200,
-                          "description": "Visible title of the step."
-                        },
-                        "screen": {
-                          "type": "object",
-                          "properties": {
-                            "key": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
-                            },
-                            "title": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 120
-                            },
-                            "description": {
-                              "type": "string",
-                              "maxLength": 8000
-                            }
-                          },
-                          "required": [
-                            "key",
-                            "title"
-                          ],
-                          "additionalProperties": false,
-                          "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
-                        },
-                        "when": {
-                          "type": "object",
-                          "properties": {
-                            "key": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
-                            },
-                            "value": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
-                            }
-                          },
-                          "required": [
-                            "key",
-                            "value"
-                          ],
-                          "additionalProperties": false,
-                          "description": "Show this step only when the step `key` was answered with `value`."
-                        },
-                        "key": {
-                          "type": "string",
-                          "minLength": 1,
-                          "maxLength": 64,
-                          "pattern": "^[a-z0-9][a-z0-9_-]*$",
-                          "description": "Stable id of the step. Its answer or photos come back under this key."
-                        },
-                        "type": {
-                          "type": "string",
-                          "enum": [
-                            "address"
-                          ]
-                        },
-                        "country": {
-                          "type": "string",
-                          "enum": [
-                            "BR"
-                          ],
-                          "description": "`BR` shows Brazilian address fields."
-                        },
-                        "description": {
-                          "type": "string",
-                          "maxLength": 500,
-                          "default": "",
-                          "description": "Instruction shown to the person."
-                        },
-                        "required": {
-                          "type": "boolean",
-                          "default": true,
-                          "description": "Default true."
-                        }
-                      },
-                      "required": [
-                        "key",
-                        "type"
-                      ],
-                      "additionalProperties": false
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "label": {
-                          "type": "string",
-                          "minLength": 1,
-                          "maxLength": 200,
-                          "description": "Visible title of the step."
-                        },
-                        "screen": {
-                          "type": "object",
-                          "properties": {
-                            "key": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
-                            },
-                            "title": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 120
-                            },
-                            "description": {
-                              "type": "string",
-                              "maxLength": 8000
-                            }
-                          },
-                          "required": [
-                            "key",
-                            "title"
-                          ],
-                          "additionalProperties": false,
-                          "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
-                        },
-                        "when": {
-                          "type": "object",
-                          "properties": {
-                            "key": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
-                            },
-                            "value": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
-                            }
-                          },
-                          "required": [
-                            "key",
-                            "value"
-                          ],
-                          "additionalProperties": false,
-                          "description": "Show this step only when the step `key` was answered with `value`."
-                        },
-                        "key": {
-                          "type": "string",
-                          "minLength": 1,
-                          "maxLength": 64
-                        },
-                        "type": {
-                          "type": "string",
-                          "enum": [
-                            "image"
-                          ]
-                        },
-                        "description": {
-                          "type": "string",
-                          "maxLength": 500
-                        },
-                        "min": {
-                          "type": "integer",
-                          "minimum": 0
-                        },
-                        "max": {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        "allow_upload": {
-                          "type": "boolean",
-                          "enum": [
-                            true
-                          ]
-                        },
-                        "accept": {
-                          "type": "array",
-                          "items": {
-                            "type": "string",
-                            "enum": [
-                              "image/jpeg",
-                              "image/png",
-                              "image/webp",
-                              "image/heic",
-                              "image/heif"
-                            ]
-                          }
-                        },
-                        "max_size_bytes": {
-                          "type": "integer",
-                          "minimum": 1,
-                          "maximum": 26214400
-                        },
-                        "expected_object": {
-                          "type": "string",
-                          "minLength": 1,
-                          "maxLength": 200
-                        },
-                        "condition_aspects": {
-                          "type": "array",
-                          "items": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 40
-                          },
-                          "minItems": 1,
-                          "maxItems": 6
-                        }
-                      },
-                      "required": [
-                        "key",
-                        "type",
-                        "description",
-                        "min",
-                        "max"
-                      ]
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "label": {
-                          "type": "string",
-                          "minLength": 1,
-                          "maxLength": 200,
-                          "description": "Visible title of the step."
-                        },
-                        "screen": {
-                          "type": "object",
-                          "properties": {
-                            "key": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
-                            },
-                            "title": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 120
-                            },
-                            "description": {
-                              "type": "string",
-                              "maxLength": 8000
-                            }
-                          },
-                          "required": [
-                            "key",
-                            "title"
-                          ],
-                          "additionalProperties": false,
-                          "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
-                        },
-                        "when": {
-                          "type": "object",
-                          "properties": {
-                            "key": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
-                            },
-                            "value": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
-                            }
-                          },
-                          "required": [
-                            "key",
-                            "value"
-                          ],
-                          "additionalProperties": false,
-                          "description": "Show this step only when the step `key` was answered with `value`."
-                        },
-                        "key": {
-                          "type": "string",
-                          "minLength": 1,
-                          "maxLength": 64
-                        },
-                        "type": {
-                          "type": "string",
-                          "enum": [
-                            "text"
-                          ]
-                        },
-                        "description": {
-                          "type": "string",
-                          "maxLength": 500
-                        },
-                        "required": {
-                          "type": "boolean"
-                        },
-                        "validation": {
-                          "type": "object",
-                          "properties": {
-                            "min_length": {
-                              "type": "integer",
-                              "minimum": 0
-                            },
-                            "max_length": {
-                              "type": "integer",
-                              "minimum": 1,
-                              "maximum": 2000
-                            },
-                            "format": {
-                              "type": "string",
-                              "enum": [
-                                "free_text",
-                                "numeric_id",
-                                "alphanumeric_id",
-                                "email"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "max_length",
-                            "format"
-                          ]
-                        },
-                        "variant": {
-                          "type": "string",
-                          "enum": [
-                            "short",
-                            "long"
-                          ]
-                        }
-                      },
-                      "required": [
-                        "key",
-                        "type",
-                        "description",
-                        "required",
-                        "validation"
-                      ]
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "label": {
-                          "type": "string",
-                          "minLength": 1,
-                          "maxLength": 200,
-                          "description": "Visible title of the step."
-                        },
-                        "screen": {
-                          "type": "object",
-                          "properties": {
-                            "key": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
-                            },
-                            "title": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 120
-                            },
-                            "description": {
-                              "type": "string",
-                              "maxLength": 8000
-                            }
-                          },
-                          "required": [
-                            "key",
-                            "title"
-                          ],
-                          "additionalProperties": false,
-                          "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
-                        },
-                        "when": {
-                          "type": "object",
-                          "properties": {
-                            "key": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
-                            },
-                            "value": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
-                            }
-                          },
-                          "required": [
-                            "key",
-                            "value"
-                          ],
-                          "additionalProperties": false,
-                          "description": "Show this step only when the step `key` was answered with `value`."
-                        },
-                        "key": {
-                          "type": "string",
-                          "minLength": 1,
-                          "maxLength": 64
-                        },
-                        "type": {
-                          "type": "string",
-                          "enum": [
-                            "upload"
-                          ]
-                        },
-                        "input": {
-                          "type": "string",
-                          "enum": [
-                            "signature"
-                          ]
-                        },
-                        "description": {
-                          "type": "string",
-                          "maxLength": 500
-                        },
-                        "min": {
-                          "type": "integer",
-                          "minimum": 0
-                        },
-                        "max": {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        "accept": {
-                          "type": "array",
-                          "items": {
-                            "type": "string",
-                            "enum": [
-                              "image/jpeg",
-                              "image/png",
-                              "image/webp",
-                              "image/heic",
-                              "image/heif"
-                            ]
-                          }
-                        },
-                        "max_size_bytes": {
-                          "type": "integer",
-                          "minimum": 1,
-                          "maximum": 26214400
-                        }
-                      },
-                      "required": [
-                        "key",
-                        "type",
-                        "description",
-                        "min",
-                        "max",
-                        "accept",
-                        "max_size_bytes"
-                      ]
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "label": {
-                          "type": "string",
-                          "minLength": 1,
-                          "maxLength": 200,
-                          "description": "Visible title of the step."
-                        },
-                        "screen": {
-                          "type": "object",
-                          "properties": {
-                            "key": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
-                            },
-                            "title": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 120
-                            },
-                            "description": {
-                              "type": "string",
-                              "maxLength": 8000
-                            }
-                          },
-                          "required": [
-                            "key",
-                            "title"
-                          ],
-                          "additionalProperties": false,
-                          "description": "Groups consecutive steps on one screen: `key` and `title` shared by the group."
-                        },
-                        "when": {
-                          "type": "object",
-                          "properties": {
-                            "key": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
-                            },
-                            "value": {
-                              "type": "string",
-                              "minLength": 1,
-                              "maxLength": 64,
-                              "pattern": "^[a-z0-9][a-z0-9_-]*$"
-                            }
-                          },
-                          "required": [
-                            "key",
-                            "value"
-                          ],
-                          "additionalProperties": false,
-                          "description": "Show this step only when the step `key` was answered with `value`."
-                        },
-                        "key": {
-                          "type": "string",
-                          "minLength": 1,
-                          "maxLength": 64
-                        },
-                        "type": {
-                          "type": "string",
-                          "enum": [
-                            "video"
-                          ]
-                        },
-                        "description": {
-                          "type": "string",
-                          "maxLength": 500
-                        },
-                        "min": {
-                          "type": "integer",
-                          "minimum": 0
-                        },
-                        "max": {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        "max_duration_sec": {
-                          "type": "integer",
-                          "minimum": 1,
-                          "maximum": 30
-                        }
-                      },
-                      "required": [
-                        "key",
-                        "type",
-                        "description",
-                        "min",
-                        "max",
-                        "max_duration_sec"
-                      ]
-                    }
-                  ],
-                  "description": "One slot of the capture spec — a discriminated union on `type`. IMAGE slots: `key` is the stable slot id echoed back as `step_key` on every capture; `description` is the instruction shown to the person capturing; `min`/`max` bound how many captures the slot takes (`min: 0` = optional slot). `expected_object` optionally scopes the object check to that slot (operator responses only). `allow_upload: true` adds a file-upload fallback to the same image step; its optional `accept` and `max_size_bytes` use the upload defaults (all supported images and 10 MB, hard cap 25 MB). TEXT slots are declared form fields answered on the capture page: `required` gates completion, `validation` is declarative and bounded (length bounds + an enumerated format — `numeric_id` digits only, `alphanumeric_id` letters/digits/hyphens, `email` a valid address up to 254 characters; no arbitrary regex). UPLOAD slots are filled with preexisting content the client uploads instead of capturing live. VIDEO slots are live clips recorded in the moment through the capture page; `max_duration_sec` defaults to 30 and is hard-capped at 30."
-                }
-              },
-              "signals_required": {
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "enum": [
-                    "screen",
-                    "ai",
-                    "reverse",
-                    "context"
-                  ],
-                  "description": "A fraud-signal the tenant requires for the verification to count as complete."
-                }
-              },
-              "mode": {
-                "type": "string",
-                "enum": [
-                  "verification",
-                  "audit"
-                ],
-                "description": "Echo of the `mode` the verification was created with. `audit` marks a run whose evidence is preexisting content pushed via API rather than captured live by a device — `steps` cannot stand in for it, since an audited file fills an ordinary `image` slot. Absent when the mint did not set it."
-              },
-              "context": {
-                "type": "object",
-                "properties": {
-                  "kind": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 64
-                  },
-                  "summary": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 500
-                  },
-                  "attributes": {
-                    "type": "object",
-                    "additionalProperties": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "number"
-                        },
-                        {
-                          "type": "boolean"
-                        }
-                      ]
-                    }
-                  }
-                },
-                "required": [
-                  "kind",
-                  "summary"
-                ],
-                "description": "Free-form context the tenant attaches at issue time. The analysis pipeline cross-references this against what is observed in the capture (the `context_match` signal). Shape is identical to the aiornot-proxy `/reports/cross-check` `context` field — reuse, not translation."
-              },
-              "webhook_url": {
-                "type": "string",
-                "format": "uri"
-              },
-              "notify_email": {
-                "type": "string",
-                "format": "email"
-              },
-              "completion_message": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 2000,
-                "description": "Full plain-text message shown after submitting content. HTML, markdown and variables are not interpreted. Omit on create or send null on PATCH to use the default."
-              },
-              "metadata": {
-                "type": "object",
-                "additionalProperties": {
-                  "type": "string"
-                }
-              },
-              "expected_location": {
-                "type": "string",
-                "description": "Address the captures are expected to happen at; activates presence verification (`location_match`)."
-              },
-              "location_required": {
-                "type": "boolean",
-                "enum": [
-                  true
-                ],
-                "description": "Location is mandatory without a compare target: the run’s first capture must carry a fix or the capture endpoint rejects it (422 `location_required`). Set via `requires_location` at create time or by the minting link template. Never present alongside `expected_location`, which implies the demand on its own."
-              },
-              "expected_object": {
-                "type": "string",
-                "description": "Free-text description of the object the content must show; activates the object check (`object_match`)."
-              },
-              "condition_aspects": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                },
-                "description": "Free-form tenant-defined aspect names the condition check scores — any language, any domain, no fixed vocabulary (1..6 items, each non-empty and ≤40 chars); activates `condition`."
-              }
-            },
-            "required": [
-              "max_captures",
-              "steps",
-              "signals_required"
-            ],
-            "description": "Tenant-supplied configuration baked into the token at issue time. Immutable after creation — changing config means issuing a new verification. `steps` is the normalized capture spec: requests that sent `max_captures: N` read back as a single anonymous step `{ key: \"capture_1\", min: N, max: N }`."
-          },
-          "answers": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "object",
-              "properties": {
-                "values": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "address": {
-                  "type": "object",
-                  "properties": {
-                    "street": {
-                      "type": "string",
-                      "minLength": 1,
-                      "maxLength": 200
-                    },
-                    "number": {
-                      "type": "string",
-                      "minLength": 1,
-                      "maxLength": 200
-                    },
-                    "neighborhood": {
-                      "type": "string",
-                      "minLength": 1,
-                      "maxLength": 200
-                    },
-                    "complement": {
-                      "type": "string",
-                      "maxLength": 200
-                    },
-                    "city": {
-                      "type": "string",
-                      "minLength": 1,
-                      "maxLength": 200
-                    },
-                    "region": {
-                      "type": "string",
-                      "minLength": 1,
-                      "maxLength": 200
-                    },
-                    "postal_code": {
-                      "type": "string",
-                      "maxLength": 200
-                    }
-                  },
-                  "required": [
-                    "street",
-                    "number",
-                    "neighborhood",
-                    "city",
-                    "region",
-                    "postal_code"
-                  ],
-                  "additionalProperties": false
-                },
-                "value": {
-                  "type": "string",
-                  "maxLength": 2000
-                },
-                "answered_at": {
-                  "type": "string",
-                  "format": "date-time"
-                }
-              },
-              "required": [
-                "value",
-                "answered_at"
-              ],
-              "description": "One answered text step. `value` is USER-DECLARED — typed by the person capturing; unlike live-captured content, it is never sensor-attested. Potential PII: it rides the operator/developer contracts and the webhook only, never OG cards or third-party public surfaces."
-            }
-          },
-          "record_seal": {
+          "verdict": {
             "anyOf": [
               {
                 "type": "object",
                 "properties": {
-                  "algorithm": {
-                    "type": "string",
-                    "enum": [
-                      "sha256"
-                    ]
+                  "rial": {
+                    "type": "boolean",
+                    "description": "True when no check tripped."
                   },
-                  "hash": {
-                    "type": "string",
-                    "minLength": 64,
-                    "maxLength": 64
-                  },
-                  "covers": {
+                  "signals": {
                     "type": "array",
                     "items": {
                       "type": "string",
                       "enum": [
-                        "record",
-                        "answers"
-                      ]
-                    }
-                  },
-                  "answers_provenance": {
-                    "type": "string",
-                    "enum": [
-                      "user_declared"
-                    ]
+                        "screen_detected",
+                        "ai_detected",
+                        "found_online"
+                      ],
+                      "description": "A check that tripped: `screen_detected` (photo of a screen), `ai_detected` (AI-generated), `found_online` (already published)."
+                    },
+                    "description": "The checks that tripped."
                   }
                 },
                 "required": [
-                  "algorithm",
-                  "hash",
-                  "covers",
-                  "answers_provenance"
-                ]
+                  "rial",
+                  "signals"
+                ],
+                "description": "Verdict of a live capture. Branch on `rial`; `signals` says why when it is false."
               },
               {
                 "type": "object",
                 "properties": {
-                  "algorithm": {
-                    "type": "string",
-                    "enum": [
-                      "sha3-512"
-                    ]
-                  },
-                  "hash": {
-                    "type": "string",
-                    "minLength": 128,
-                    "maxLength": 128
-                  },
-                  "covers": {
+                  "signals": {
                     "type": "array",
                     "items": {
-                      "type": "string",
-                      "enum": [
-                        "record",
-                        "answers"
-                      ]
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "screen_detected"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "type"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "ai_detected"
+                              ]
+                            },
+                            "confidence": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            }
+                          },
+                          "required": [
+                            "type",
+                            "confidence"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "found_online"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "type"
+                          ]
+                        }
+                      ],
+                      "description": "A check that tripped on an audited file."
                     }
-                  },
-                  "answers_provenance": {
-                    "type": "string",
-                    "enum": [
-                      "user_declared"
-                    ]
                   }
                 },
                 "required": [
-                  "algorithm",
-                  "hash",
-                  "covers",
-                  "answers_provenance"
-                ]
+                  "signals"
+                ],
+                "description": "Verdict of an audit (`mode: \"audit\"`, a file that already existed). No `rial`: with no live capture behind it, the checks are reported for you to weigh. Empty `signals` means nothing tripped."
               }
-            ],
-            "description": "Integrity seal over the verification record including `answers`. Present only when answers exist and sealing is on (`seal !== false`). The hash proves the stored answers have not changed — it does NOT claim they are true or sensor-attested; `answers_provenance` carries that distinction explicitly."
+            ]
           },
-          "verdict": {
+          "location": {
             "type": "object",
             "properties": {
-              "label": {
+              "lat": {
+                "type": "number"
+              },
+              "lng": {
+                "type": "number"
+              },
+              "accuracy_m": {
+                "type": "number",
+                "minimum": 0
+              },
+              "derived_from": {
                 "type": "string",
                 "enum": [
-                  "verified",
-                  "suspicious",
-                  "failed"
+                  "exif",
+                  "live",
+                  "last_known_session",
+                  "last_known_system",
+                  "last_known_persisted"
                 ]
               },
-              "score": {
-                "type": "number",
-                "minimum": 0,
-                "maximum": 1
+              "age_ms": {
+                "type": "integer",
+                "minimum": 0
               },
-              "signals": {
-                "type": "object",
-                "properties": {
-                  "screen_detection": {
-                    "anyOf": [
-                      {
-                        "type": "object",
-                        "properties": {
-                          "screen_detected": {
-                            "type": "boolean"
-                          },
-                          "confidence": {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          }
-                        },
-                        "required": [
-                          "screen_detected",
-                          "confidence"
-                        ]
-                      },
-                      {
-                        "type": "object",
-                        "properties": {
-                          "status": {
-                            "type": "string",
-                            "enum": [
-                              "not_applicable"
-                            ]
-                          },
-                          "reason": {
-                            "type": "string",
-                            "enum": [
-                              "uploaded_content"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "status",
-                          "reason"
-                        ]
-                      }
-                    ]
-                  },
-                  "ai_detection": {
-                    "anyOf": [
-                      {
-                        "type": "object",
-                        "properties": {
-                          "label": {
-                            "type": "string",
-                            "enum": [
-                              "likely_human",
-                              "likely_ai",
-                              "unknown"
-                            ]
-                          },
-                          "confidence": {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          }
-                        },
-                        "required": [
-                          "label",
-                          "confidence"
-                        ]
-                      },
-                      {
-                        "type": "object",
-                        "properties": {
-                          "status": {
-                            "type": "string",
-                            "enum": [
-                              "not_applicable"
-                            ]
-                          },
-                          "reason": {
-                            "type": "string",
-                            "enum": [
-                              "uploaded_content"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "status",
-                          "reason"
-                        ]
-                      }
-                    ]
-                  },
-                  "reverse_search": {
-                    "anyOf": [
-                      {
-                        "type": "object",
-                        "properties": {
-                          "found_online": {
-                            "type": "boolean"
-                          },
-                          "match_count": {
-                            "type": "integer",
-                            "minimum": 0
-                          }
-                        },
-                        "required": [
-                          "found_online",
-                          "match_count"
-                        ]
-                      },
-                      {
-                        "type": "object",
-                        "properties": {
-                          "status": {
-                            "type": "string",
-                            "enum": [
-                              "not_applicable"
-                            ]
-                          },
-                          "reason": {
-                            "type": "string",
-                            "enum": [
-                              "uploaded_content"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "status",
-                          "reason"
-                        ]
-                      }
-                    ]
-                  },
-                  "provenance": {
-                    "anyOf": [
-                      {
-                        "type": "object",
-                        "properties": {
-                          "declared_ai": {
-                            "type": "boolean",
-                            "enum": [
-                              true
-                            ]
-                          },
-                          "source": {
-                            "type": "string",
-                            "enum": [
-                              "openai",
-                              "google",
-                              "c2pa_signed",
-                              "iptc_trained_algorithmic_media",
-                              "generator_metadata"
-                            ]
-                          },
-                          "detail": {
-                            "type": "string"
-                          },
-                          "generator": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "declared_ai",
-                          "source",
-                          "detail"
-                        ]
-                      },
-                      {
-                        "type": "object",
-                        "properties": {
-                          "status": {
-                            "type": "string",
-                            "enum": [
-                              "not_applicable"
-                            ]
-                          },
-                          "reason": {
-                            "type": "string",
-                            "enum": [
-                              "uploaded_content"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "status",
-                          "reason"
-                        ]
-                      }
-                    ]
-                  }
-                },
-                "description": "Per-signal evidence behind the verdict. Each signal is either its evaluated shape, or `{ status: \"not_applicable\", reason: \"uploaded_content\" }` when the slot was never evaluated because the underlying content was uploaded rather than captured live — never rendered as a failure."
-              },
-              "reason_code": {
-                "type": "string",
-                "enum": [
-                  "screen_detected",
-                  "ai_generated",
-                  "context_mismatch",
-                  "reverse_search_match"
-                ],
-                "description": "Which signal drove a non-`verified` label, in priority order (screen > AI > context > reverse search > depth) when more than one tripped. Absent on `verified` verdicts."
+              "place": {
+                "type": "string"
               }
             },
             "required": [
-              "label",
-              "score",
-              "signals"
+              "lat",
+              "lng",
+              "accuracy_m"
             ],
-            "description": "Aggregate verdict produced by the per-capture analysis pipeline. `label` is the human-readable bucket; `score` is the confidence in the verdict."
+            "description": "Where the photo was taken, from the device. Absent for uploaded files and when the device reported no fix."
           },
-          "narrative": {
-            "type": "string",
-            "maxLength": 2000
+          "location_match": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "verified",
+                  "no_match",
+                  "ungeocoded",
+                  "rejected",
+                  "not_applicable"
+                ]
+              },
+              "expected_location": {
+                "type": "string"
+              },
+              "observed_location": {
+                "type": "string"
+              },
+              "expected_point": {
+                "type": "object",
+                "properties": {
+                  "lat": {
+                    "type": "number"
+                  },
+                  "lng": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "lat",
+                  "lng"
+                ]
+              },
+              "observed_point": {
+                "type": "object",
+                "properties": {
+                  "lat": {
+                    "type": "number"
+                  },
+                  "lng": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "lat",
+                  "lng"
+                ]
+              },
+              "distance_m": {
+                "type": "number",
+                "minimum": 0
+              },
+              "threshold_m": {
+                "type": "number",
+                "minimum": 0
+              },
+              "gps_accuracy_m": {
+                "type": "number",
+                "minimum": 0
+              },
+              "geocode_ref": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "status"
+            ],
+            "description": "Whether the photo was taken at `expected_location`. `verified` within GPS tolerance; `no_match` somewhere else; `ungeocoded` when the address or the fix could not be resolved; `rejected` when the device reported a mock location."
           },
           "object_match": {
             "type": "object",
@@ -1462,56 +481,163 @@
             ],
             "description": "Screen-detection analysis of a video-step clip, sampled at one frame per second. Written asynchronously after capture — poll or use webhooks; absent until the worker has run."
           },
-          "progress": {
+          "ocr_primary": {
+            "type": "string"
+          },
+          "answers": {
             "type": "object",
-            "properties": {
-              "schema_version": {
-                "type": "number",
-                "enum": [
-                  1
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "values": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "address": {
+                  "type": "object",
+                  "properties": {
+                    "street": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200
+                    },
+                    "number": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200
+                    },
+                    "neighborhood": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200
+                    },
+                    "complement": {
+                      "type": "string",
+                      "maxLength": 200
+                    },
+                    "city": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200
+                    },
+                    "region": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200
+                    },
+                    "postal_code": {
+                      "type": "string",
+                      "maxLength": 200
+                    }
+                  },
+                  "required": [
+                    "street",
+                    "number",
+                    "neighborhood",
+                    "city",
+                    "region",
+                    "postal_code"
+                  ],
+                  "additionalProperties": false
+                },
+                "value": {
+                  "type": "string",
+                  "maxLength": 2000
+                },
+                "answered_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "value",
+                "answered_at"
+              ],
+              "description": "One answered text step. `value` is USER-DECLARED — typed by the person capturing; unlike live-captured content, it is never sensor-attested. Potential PII: it rides the operator/developer contracts and the webhook only, never OG cards or third-party public surfaces."
+            }
+          },
+          "record_seal": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "algorithm": {
+                    "type": "string",
+                    "enum": [
+                      "sha256"
+                    ]
+                  },
+                  "hash": {
+                    "type": "string",
+                    "minLength": 64,
+                    "maxLength": 64
+                  },
+                  "covers": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "record",
+                        "answers"
+                      ]
+                    }
+                  },
+                  "answers_provenance": {
+                    "type": "string",
+                    "enum": [
+                      "user_declared"
+                    ]
+                  }
+                },
+                "required": [
+                  "algorithm",
+                  "hash",
+                  "covers",
+                  "answers_provenance"
                 ]
               },
-              "step": {
-                "type": "string",
-                "enum": [
-                  "landing",
-                  "ready",
-                  "capturing",
-                  "reviewing",
-                  "uploading",
-                  "camera_blocked",
-                  "success"
+              {
+                "type": "object",
+                "properties": {
+                  "algorithm": {
+                    "type": "string",
+                    "enum": [
+                      "sha3-512"
+                    ]
+                  },
+                  "hash": {
+                    "type": "string",
+                    "minLength": 128,
+                    "maxLength": 128
+                  },
+                  "covers": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "record",
+                        "answers"
+                      ]
+                    }
+                  },
+                  "answers_provenance": {
+                    "type": "string",
+                    "enum": [
+                      "user_declared"
+                    ]
+                  }
+                },
+                "required": [
+                  "algorithm",
+                  "hash",
+                  "covers",
+                  "answers_provenance"
                 ]
-              },
-              "step_index": {
-                "type": "integer",
-                "minimum": 0
-              },
-              "camera_permission": {
-                "type": "string",
-                "enum": [
-                  "granted",
-                  "denied",
-                  "unavailable",
-                  "unknown"
-                ]
-              },
-              "elapsed_ms": {
-                "type": "integer",
-                "minimum": 0
-              },
-              "updated_at": {
-                "type": "string",
-                "format": "date-time"
               }
-            },
-            "required": [
-              "schema_version",
-              "step",
-              "elapsed_ms",
-              "updated_at"
             ],
-            "description": "Latest funnel-progress snapshot reported via `POST /v1/verifications/:token/progress`. A snapshot, not an event log — each call overwrites the previous one. Operator-only; never present on the public projection."
+            "description": "Integrity seal over the verification record including `answers`. Present only when answers exist and sealing is on (`seal !== false`). The hash proves the stored answers have not changed — it does NOT claim they are true or sensor-attested; `answers_provenance` carries that distinction explicitly."
           }
         },
         "required": [
@@ -1520,10 +646,9 @@
           "capture_url",
           "created_at",
           "expires_at",
-          "captures_count",
-          "config"
+          "captures_count"
         ],
-        "description": "Canonical wire shape for a verification. `narrative` is present after finalize; an empty value marks submission through `POST /v1/verifications/{token}/complete`. `verdict` is present only after analysis completed."
+        "description": "A verification as your API key sees it. `verdict` appears once analysis finished; `object_match`, `location_match` and `condition` appear when you asked for them and the check ran. Your `metadata` is not echoed back: keep the `id`."
       },
       "ErrorResponse": {
         "type": "object",
@@ -3195,39 +2320,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Verification"
+                  "$ref": "#/components/schemas/DeveloperVerification"
                 },
                 "example": {
                   "id": "vfy_01HXYZABCDEFGHJKMNPQRSTVWX",
                   "status": "pending",
                   "capture_url": "https://verify.rial.io/v/vfy_01HXYZABCDEFGHJKMNPQRSTVWX",
-                  "created_at": "2026-05-28T13:00:00.000Z",
-                  "expires_at": "2026-05-28T14:00:00.000Z",
-                  "captures_count": 0,
-                  "config": {
-                    "max_captures": 3,
-                    "steps": [
-                      {
-                        "key": "capture_1",
-                        "type": "image",
-                        "description": "",
-                        "min": 3,
-                        "max": 3
-                      }
-                    ],
-                    "signals_required": [
-                      "screen",
-                      "ai"
-                    ],
-                    "context": {
-                      "kind": "damage_claim",
-                      "summary": "Toyota Corolla front bumper"
-                    },
-                    "webhook_url": "https://api.acmeinsurance.com/rial/webhooks",
-                    "metadata": {
-                      "claim_id": "CLM-9912"
-                    }
-                  }
+                  "created_at": "2026-09-16T19:06:57.718Z",
+                  "expires_at": "2026-09-16T20:06:57.718Z",
+                  "captures_count": 0
                 }
               }
             }
@@ -3435,10 +2536,8 @@
                     "items": {
                       "type": "array",
                       "items": {
-                        "type": "object",
-                        "properties": {}
-                      },
-                      "description": "Array of Verification objects."
+                        "$ref": "#/components/schemas/DeveloperVerification"
+                      }
                     },
                     "next_cursor": {
                       "type": "string"
@@ -3454,80 +2553,43 @@
                       "id": "vfy_01HXYZABCDEFGHJKMNPQRSTVWX",
                       "status": "completed",
                       "capture_url": "https://verify.rial.io/v/vfy_01HXYZABCDEFGHJKMNPQRSTVWX",
-                      "created_at": "2026-05-28T13:00:00.000Z",
-                      "expires_at": "2026-05-28T14:00:00.000Z",
-                      "captures_count": 3,
-                      "config": {
-                        "max_captures": 3,
-                        "steps": [
-                          {
-                            "key": "capture_1",
-                            "type": "image",
-                            "description": "",
-                            "min": 3,
-                            "max": 3
-                          }
-                        ],
-                        "signals_required": [
-                          "screen",
-                          "ai"
-                        ],
-                        "context": {
-                          "kind": "damage_claim",
-                          "summary": "Toyota Corolla front bumper"
-                        },
-                        "webhook_url": "https://api.acmeinsurance.com/rial/webhooks",
-                        "metadata": {
-                          "claim_id": "CLM-9912"
-                        }
-                      },
-                      "narrative": "Front bumper damaged after low-speed collision in supermarket parking lot.",
+                      "created_at": "2026-09-16T19:06:57.718Z",
+                      "expires_at": "2026-09-16T20:06:57.718Z",
+                      "captures_count": 1,
                       "verdict": {
-                        "label": "verified",
-                        "score": 0.92,
-                        "signals": {
-                          "screen_detection": {
-                            "screen_detected": false,
-                            "confidence": 0.97
-                          },
-                          "ai_detection": {
-                            "label": "likely_human",
-                            "confidence": 0.88
+                        "rial": false,
+                        "signals": [
+                          "screen_detected"
+                        ]
+                      },
+                      "object_match": {
+                        "status": "match",
+                        "expected_object": "car"
+                      },
+                      "location_match": {
+                        "status": "verified",
+                        "expected_location": "Av. Córdoba 5635, Buenos Aires",
+                        "distance_m": 23
+                      },
+                      "condition": {
+                        "score": 8,
+                        "label": "good",
+                        "aspects": [
+                          {
+                            "name": "paint",
+                            "score": 8,
+                            "reasoning": "Even, no visible damage."
                           }
-                        }
+                        ]
                       }
                     },
                     {
                       "id": "vfy_01HXYZABCDEFGHJKMNPQRSTVWX",
                       "status": "pending",
                       "capture_url": "https://verify.rial.io/v/vfy_01HXYZABCDEFGHJKMNPQRSTVWX",
-                      "created_at": "2026-05-28T13:00:00.000Z",
-                      "expires_at": "2026-05-28T14:00:00.000Z",
-                      "captures_count": 0,
-                      "config": {
-                        "max_captures": 3,
-                        "steps": [
-                          {
-                            "key": "capture_1",
-                            "type": "image",
-                            "description": "",
-                            "min": 3,
-                            "max": 3
-                          }
-                        ],
-                        "signals_required": [
-                          "screen",
-                          "ai"
-                        ],
-                        "context": {
-                          "kind": "damage_claim",
-                          "summary": "Toyota Corolla front bumper"
-                        },
-                        "webhook_url": "https://api.acmeinsurance.com/rial/webhooks",
-                        "metadata": {
-                          "claim_id": "CLM-9912"
-                        }
-                      }
+                      "created_at": "2026-09-16T19:06:57.718Z",
+                      "expires_at": "2026-09-16T20:06:57.718Z",
+                      "captures_count": 0
                     }
                   ],
                   "next_cursor": "eyJwayI6ICJWRlkjdmZ5XzAxLi4uIiwic2siOiAiTUVUQSJ9"
@@ -3582,7 +2644,7 @@
           "Verifications"
         ],
         "summary": "Get a verification",
-        "description": "The verification with its photos. Image URLs are signed and valid for one hour.",
+        "description": "The verification and its results: `verdict` once analysis finished, plus the checks you asked for.",
         "security": [
           {
             "bearerApiKey": []
@@ -3607,53 +2669,40 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Verification"
+                  "$ref": "#/components/schemas/DeveloperVerification"
                 },
                 "example": {
                   "id": "vfy_01HXYZABCDEFGHJKMNPQRSTVWX",
                   "status": "completed",
                   "capture_url": "https://verify.rial.io/v/vfy_01HXYZABCDEFGHJKMNPQRSTVWX",
-                  "created_at": "2026-05-28T13:00:00.000Z",
-                  "expires_at": "2026-05-28T14:00:00.000Z",
-                  "captures_count": 3,
-                  "config": {
-                    "max_captures": 3,
-                    "steps": [
-                      {
-                        "key": "capture_1",
-                        "type": "image",
-                        "description": "",
-                        "min": 3,
-                        "max": 3
-                      }
-                    ],
-                    "signals_required": [
-                      "screen",
-                      "ai"
-                    ],
-                    "context": {
-                      "kind": "damage_claim",
-                      "summary": "Toyota Corolla front bumper"
-                    },
-                    "webhook_url": "https://api.acmeinsurance.com/rial/webhooks",
-                    "metadata": {
-                      "claim_id": "CLM-9912"
-                    }
-                  },
-                  "narrative": "Front bumper damaged after low-speed collision in supermarket parking lot.",
+                  "created_at": "2026-09-16T19:06:57.718Z",
+                  "expires_at": "2026-09-16T20:06:57.718Z",
+                  "captures_count": 1,
                   "verdict": {
-                    "label": "verified",
-                    "score": 0.92,
-                    "signals": {
-                      "screen_detection": {
-                        "screen_detected": false,
-                        "confidence": 0.97
-                      },
-                      "ai_detection": {
-                        "label": "likely_human",
-                        "confidence": 0.88
+                    "rial": false,
+                    "signals": [
+                      "screen_detected"
+                    ]
+                  },
+                  "object_match": {
+                    "status": "match",
+                    "expected_object": "car"
+                  },
+                  "location_match": {
+                    "status": "verified",
+                    "expected_location": "Av. Córdoba 5635, Buenos Aires",
+                    "distance_m": 23
+                  },
+                  "condition": {
+                    "score": 8,
+                    "label": "good",
+                    "aspects": [
+                      {
+                        "name": "paint",
+                        "score": 8,
+                        "reasoning": "Even, no visible damage."
                       }
-                    }
+                    ]
                   }
                 }
               }
@@ -3781,15 +2830,15 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "events": {
+                    "items": {
                       "type": "array",
                       "items": {
                         "type": "object",
                         "properties": {
-                          "event_id": {
+                          "id": {
                             "type": "string"
                           },
-                          "event_name": {
+                          "type": {
                             "type": "string"
                           },
                           "occurred_at": {
@@ -3802,32 +2851,32 @@
                           }
                         },
                         "required": [
-                          "event_id",
-                          "event_name",
+                          "id",
+                          "type",
                           "occurred_at"
                         ]
                       }
                     }
                   },
                   "required": [
-                    "events"
+                    "items"
                   ]
                 },
                 "example": {
-                  "events": [
+                  "items": [
                     {
-                      "event_id": "evt_01HXYZABC",
-                      "event_name": "verification.created",
+                      "id": "evt_01HXYZABC",
+                      "type": "verification.created",
                       "occurred_at": "2026-05-28T13:00:00.000Z"
                     },
                     {
-                      "event_id": "evt_01HXYZDEF",
-                      "event_name": "verification.capture.persisted",
+                      "id": "evt_01HXYZDEF",
+                      "type": "verification.capture.persisted",
                       "occurred_at": "2026-05-28T13:02:15.000Z"
                     },
                     {
-                      "event_id": "evt_01HXYZGHI",
-                      "event_name": "verification.completed",
+                      "id": "evt_01HXYZGHI",
+                      "type": "verification.completed",
                       "occurred_at": "2026-05-28T13:05:00.000Z"
                     }
                   ]
@@ -3898,53 +2947,40 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Verification"
+                  "$ref": "#/components/schemas/DeveloperVerification"
                 },
                 "example": {
                   "id": "vfy_01HXYZABCDEFGHJKMNPQRSTVWX",
                   "status": "completed",
                   "capture_url": "https://verify.rial.io/v/vfy_01HXYZABCDEFGHJKMNPQRSTVWX",
-                  "created_at": "2026-05-28T13:00:00.000Z",
-                  "expires_at": "2026-05-28T14:00:00.000Z",
-                  "captures_count": 3,
-                  "config": {
-                    "max_captures": 3,
-                    "steps": [
-                      {
-                        "key": "capture_1",
-                        "type": "image",
-                        "description": "",
-                        "min": 3,
-                        "max": 3
-                      }
-                    ],
-                    "signals_required": [
-                      "screen",
-                      "ai"
-                    ],
-                    "context": {
-                      "kind": "damage_claim",
-                      "summary": "Toyota Corolla front bumper"
-                    },
-                    "webhook_url": "https://api.acmeinsurance.com/rial/webhooks",
-                    "metadata": {
-                      "claim_id": "CLM-9912"
-                    }
-                  },
-                  "narrative": "Front bumper damaged after low-speed collision in supermarket parking lot.",
+                  "created_at": "2026-09-16T19:06:57.718Z",
+                  "expires_at": "2026-09-16T20:06:57.718Z",
+                  "captures_count": 1,
                   "verdict": {
-                    "label": "verified",
-                    "score": 0.92,
-                    "signals": {
-                      "screen_detection": {
-                        "screen_detected": false,
-                        "confidence": 0.97
-                      },
-                      "ai_detection": {
-                        "label": "likely_human",
-                        "confidence": 0.88
+                    "rial": false,
+                    "signals": [
+                      "screen_detected"
+                    ]
+                  },
+                  "object_match": {
+                    "status": "match",
+                    "expected_object": "car"
+                  },
+                  "location_match": {
+                    "status": "verified",
+                    "expected_location": "Av. Córdoba 5635, Buenos Aires",
+                    "distance_m": 23
+                  },
+                  "condition": {
+                    "score": 8,
+                    "label": "good",
+                    "aspects": [
+                      {
+                        "name": "paint",
+                        "score": 8,
+                        "reasoning": "Even, no visible damage."
                       }
-                    }
+                    ]
                   }
                 }
               }
