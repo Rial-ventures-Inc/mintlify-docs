@@ -28,10 +28,6 @@
       "description": "Upload media against an existing verification. Two-stage flow: mint a presigned S3 URL → PUT bytes direct to S3 → POST submit-capture with the resulting key. Hardware attestation (Cloudflare Turnstile / Apple PAT) is verified per-capture."
     },
     {
-      "name": "Public Trial",
-      "description": "Unauthenticated trial endpoint behind `rial.io/trial`. Each call mints a fresh verification under the rial. tenant tagged `originChannel=\"wa\"`, so the WA-completion worker delivers the verdict to the configured trial number."
-    },
-    {
       "name": "Templates",
       "description": "Publish, update, revoke and inspect link templates — the reusable capture links behind `/l/{token}` (a compact JWT carrying the org and template slugs; the legacy `/l/{org}/{slug}` keeps resolving). Callable with a secret key; each publish snapshots a versioned capture spec (GET-83)."
     },
@@ -4875,79 +4871,6 @@
                   "error": {
                     "code": "expired",
                     "message": "Verification has expired"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/public/trial/start": {
-      "post": {
-        "tags": [
-          "Public Trial"
-        ],
-        "summary": "Mint a trial verification (no auth)",
-        "description": "Powers the `rial.io/trial` QR-driven landing flow. Each visit mints a fresh verification under the rial. tenant (`tnt_rial`) tagged `originChannel='wa'` so the WA-completion worker delivers the verdict to the configured trial phone number once the user uploads a photo.",
-        "requestBody": {
-          "required": false,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "source": {
-                    "type": "string",
-                    "maxLength": 64
-                  }
-                }
-              },
-              "example": {
-                "source": "qr_v2_kitchen_demo"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Trial verification minted. `capture_url` is the SPA URL the visitor opens to upload their photo.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "verification_id": {
-                      "type": "string"
-                    },
-                    "capture_url": {
-                      "type": "string",
-                      "format": "uri"
-                    }
-                  },
-                  "required": [
-                    "verification_id",
-                    "capture_url"
-                  ]
-                },
-                "example": {
-                  "verification_id": "vfy_01HXYZABCDEFGHJKMNPQRSTVWX",
-                  "capture_url": "https://verify.rial.io/v/vfy_01HXYZABCDEFGHJKMNPQRSTVWX"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Per-IP rate limit exceeded (1000 req/h). `Retry-After` header set.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "example": {
-                  "error": {
-                    "code": "too_many_requests",
-                    "message": "Rate limit exceeded"
                   }
                 }
               }
