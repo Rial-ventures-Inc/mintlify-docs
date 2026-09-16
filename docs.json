@@ -1,8 +1,8 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "willow",
-  "name": "rial",
-  "description": "Prove a photo is real. Developer documentation for the rial API, CLI and native SDKs.",
+  "name": "RIAL",
+  "description": "Prove a photo is real. Developer documentation for the RIAL API, CLI and native SDKs.",
   "colors": {
     "primary": "#1C1C1A",
     "light": "#5EDCF0",
@@ -83,7 +83,7 @@
   "footer": {
     "links": [
       {
-        "header": "rial",
+        "header": "RIAL",
         "items": [
           {
             "label": "rial.io",
@@ -103,7 +103,7 @@
   },
   "seo": {
     "metatags": {
-      "og:title": "rial developer documentation",
+      "og:title": "RIAL developer documentation",
       "og:description": "Prove a photo is real. API, CLI and native SDKs."
     }
   },
