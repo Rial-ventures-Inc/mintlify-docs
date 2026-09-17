@@ -68,7 +68,7 @@ app.post('/rial', async (req, res) => {
 });
 ```
 
-Two events arrive. `verification.created` carries the ids and the status. `verification.completed` adds the verdict in its detailed form (`label`, `score`, `reasonCode`, one entry per check), the captures and the answers. For anything else, call `verifications.get(event.verificationId)`.
+Two events arrive. `verification.created` carries the ids, the status, your `metadata` and the `templateSlug` when it came from a template. `verification.completed` adds the verdict in its detailed form (`label`, `score`, `reasonCode`, one entry per check), the captures and the answers. For anything else, call `verifications.get(event.verificationId)`.
 
 ## Reading results
 
