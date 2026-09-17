@@ -211,7 +211,7 @@ try {
 }
 ```
 
-`RialError` carries `status`, `code` and `message`. Reads retry on network errors, `429` and `5xx`; writes never retry on their own.
+`RialError` carries `status`, `code`, `fields`, `hint` and a `message` that already says what was wrong: `rial API responded 400 (invalid_request): steps.0.conditionAspects: must be a list, got string`. Every code and what to do about it: [Errors](/errors). Reads retry on network errors, `429` and `5xx`; writes never retry on their own.
 
 ## Reference
 

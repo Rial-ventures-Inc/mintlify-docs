@@ -1,0 +1,79 @@
+---
+title: "Errors"
+description: "Every error, what it means and what to do."
+---
+
+Every error is JSON with the same shape. `code` is the string to branch on; `message` is for humans; `fields` appears only on `invalid_request` and names each problem.
+
+```json
+{
+  "error": {
+    "code": "invalid_request",
+    "message": "Request body failed validation",
+    "fields": [
+      { "path": "steps.0.condition_aspects", "message": "must be a list, got string" }
+    ]
+  }
+}
+```
+
+With the Node SDK the same error is a `RialError`: `status`, `code`, `fields` (paths in the camelCase you wrote), `hint`, and a `message` that already says what was wrong.
+
+```ts
+import { RialError } from '@rial/sdk';
+
+try {
+  await rial.verifications.create({ steps });
+} catch (error) {
+  if (error instanceof RialError && error.code === 'insufficient_credits') {
+    notifyBilling();
+    return;
+  }
+  throw error;
+}
+```
+
+## Codes
+
+| Code | Status | It means | Do this |
+| --- | --- | --- | --- |
+| `invalid_request` | 400 | A field is wrong or missing. | Fix the fields listed in `fields`. |
+| `invalid_json` | 400 | The body is not valid JSON. | Send `Content-Type: application/json` and a JSON body. |
+| `unauthorized` | 401 | Missing or invalid API key. | Use an `rk_secret_…` key for this environment. Staging keys don't work on `api.rial.io`. |
+| `forbidden` | 403 | This key or account can't do that. | Check the key's account, or ask an admin. |
+| `not_found` | 404 | No such id in this account. | Ids are per account and per environment. |
+| `conflict` | 409 | Already exists or already changed. | Read the resource back and retry from its current state. |
+| `slug_taken` | 409 | A template with that slug exists. | Pick another slug, or update the existing template. |
+| `expired` | 410 | The verification link expired. | Create another verification. |
+| `step_full` | 409 | The step already has all its photos. | Nothing to send for that step. |
+| `unknown_step` | 400 | No step with that key. | Use a key from the verification's steps. |
+| `steps_incomplete` | 409 | Required steps are missing. | The person hasn't finished; wait for `verification.completed`. |
+| `already_finalized` | 409 | The case is closed. | Nothing more to change. |
+| `no_verdict` | 409 | Analysis hasn't finished. | Wait for the webhook or poll with `waitFor`. |
+| `identification_required` | 422 | The template asks for an identification. | Pass `identification` when minting from the template. |
+| `unknown_brand` | 422 | No brand profile with that slug. | Check `brand_slug`. |
+| `location_required` | 422 | The first photo needs a location. | Capture through the link with location on. |
+| `link_paused` | 409 | The template is paused. | Set its `status` to `active`. |
+| `link_cap_exceeded` | 429 | The template hit its daily or total cap. | Raise the cap or wait. |
+| `insufficient_credits` | 402 | No credits left. | Add credits in the dashboard, Account → Billing. |
+| `plan_limit_reached` | 402 | Monthly plan quota used up. | Upgrade, or wait for the next period. |
+| `too_many_requests` | 429 | Rate limit. | Wait `Retry-After` seconds. The SDK retries reads on its own. |
+| `storage_unavailable` | 503 | A dependency is down. | Retry in a moment. |
+| `internal_error` | 500 | Our bug. | Retry; tell us if it persists. |
+
+The SDK adds three of its own, with `status: 0`: `network_error` (could not reach the API), `timeout` (no answer within `timeoutMs`) and `aborted` (you cancelled polling).
+
+## Field messages
+
+`fields[].path` uses the wire names (`steps.0.condition_aspects`); the SDK reports the camelCase you wrote (`steps.0.conditionAspects`). Messages read the same everywhere:
+
+- `is required`
+- `must be a list, got string`
+- `must be one of: image, text, upload, video, choice, address`
+- `must be at least 60`, `must have at most 6 items`, `must not be empty`
+- `has unknown field: "webhook"`
+- `must be a valid URL, including https://`
+
+## Retries
+
+Reads (`GET`) are safe to retry. The SDK retries them on network errors, `429` and `5xx` with backoff. Writes are never retried automatically: a retried `POST /v1/verifications` mints a second verification. Dedupe on your own `metadata` if you must retry.
