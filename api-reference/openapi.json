@@ -704,7 +704,7 @@
           "steps": {
             "type": "array",
             "items": {
-              "anyOf": [
+              "oneOf": [
                 {
                   "type": "object",
                   "properties": {
@@ -774,8 +774,7 @@
                       "type": "string",
                       "enum": [
                         "image"
-                      ],
-                      "default": "image"
+                      ]
                     },
                     "description": {
                       "type": "string",
@@ -786,12 +785,14 @@
                     "min": {
                       "type": "integer",
                       "minimum": 0,
-                      "description": "Minimum photos. 0 makes the step optional."
+                      "default": 1,
+                      "description": "Minimum photos. 0 makes the step optional. Default 1."
                     },
                     "max": {
                       "type": "integer",
                       "minimum": 1,
-                      "description": "Maximum photos."
+                      "default": 1,
+                      "description": "Maximum photos. Default 1."
                     },
                     "allow_upload": {
                       "type": "boolean",
@@ -838,8 +839,7 @@
                   },
                   "required": [
                     "key",
-                    "min",
-                    "max"
+                    "type"
                   ],
                   "additionalProperties": false
                 },
@@ -1057,12 +1057,14 @@
                     "min": {
                       "type": "integer",
                       "minimum": 0,
-                      "description": "Minimum files. 0 makes the step optional."
+                      "default": 1,
+                      "description": "Minimum files. 0 makes the step optional. Default 1."
                     },
                     "max": {
                       "type": "integer",
                       "minimum": 1,
-                      "description": "Maximum files."
+                      "default": 1,
+                      "description": "Maximum files. Default 1."
                     },
                     "accept": {
                       "type": "array",
@@ -1096,9 +1098,7 @@
                   },
                   "required": [
                     "key",
-                    "type",
-                    "min",
-                    "max"
+                    "type"
                   ],
                   "additionalProperties": false
                 },
@@ -1182,12 +1182,14 @@
                     "min": {
                       "type": "integer",
                       "minimum": 0,
-                      "description": "Minimum clips. 0 makes the step optional."
+                      "default": 1,
+                      "description": "Minimum clips. 0 makes the step optional. Default 1."
                     },
                     "max": {
                       "type": "integer",
                       "minimum": 1,
-                      "description": "Maximum clips."
+                      "default": 1,
+                      "description": "Maximum clips. Default 1."
                     },
                     "max_duration_sec": {
                       "type": "integer",
@@ -1199,9 +1201,7 @@
                   },
                   "required": [
                     "key",
-                    "type",
-                    "min",
-                    "max"
+                    "type"
                   ],
                   "additionalProperties": false
                 },
@@ -3239,7 +3239,7 @@
                   "steps": {
                     "type": "array",
                     "items": {
-                      "anyOf": [
+                      "oneOf": [
                         {
                           "type": "object",
                           "properties": {
@@ -3309,8 +3309,7 @@
                               "type": "string",
                               "enum": [
                                 "image"
-                              ],
-                              "default": "image"
+                              ]
                             },
                             "description": {
                               "type": "string",
@@ -3321,12 +3320,14 @@
                             "min": {
                               "type": "integer",
                               "minimum": 0,
-                              "description": "Minimum photos. 0 makes the step optional."
+                              "default": 1,
+                              "description": "Minimum photos. 0 makes the step optional. Default 1."
                             },
                             "max": {
                               "type": "integer",
                               "minimum": 1,
-                              "description": "Maximum photos."
+                              "default": 1,
+                              "description": "Maximum photos. Default 1."
                             },
                             "allow_upload": {
                               "type": "boolean",
@@ -3373,8 +3374,7 @@
                           },
                           "required": [
                             "key",
-                            "min",
-                            "max"
+                            "type"
                           ],
                           "additionalProperties": false
                         },
@@ -3592,12 +3592,14 @@
                             "min": {
                               "type": "integer",
                               "minimum": 0,
-                              "description": "Minimum files. 0 makes the step optional."
+                              "default": 1,
+                              "description": "Minimum files. 0 makes the step optional. Default 1."
                             },
                             "max": {
                               "type": "integer",
                               "minimum": 1,
-                              "description": "Maximum files."
+                              "default": 1,
+                              "description": "Maximum files. Default 1."
                             },
                             "accept": {
                               "type": "array",
@@ -3631,9 +3633,7 @@
                           },
                           "required": [
                             "key",
-                            "type",
-                            "min",
-                            "max"
+                            "type"
                           ],
                           "additionalProperties": false
                         },
@@ -3717,12 +3717,14 @@
                             "min": {
                               "type": "integer",
                               "minimum": 0,
-                              "description": "Minimum clips. 0 makes the step optional."
+                              "default": 1,
+                              "description": "Minimum clips. 0 makes the step optional. Default 1."
                             },
                             "max": {
                               "type": "integer",
                               "minimum": 1,
-                              "description": "Maximum clips."
+                              "default": 1,
+                              "description": "Maximum clips. Default 1."
                             },
                             "max_duration_sec": {
                               "type": "integer",
@@ -3734,9 +3736,7 @@
                           },
                           "required": [
                             "key",
-                            "type",
-                            "min",
-                            "max"
+                            "type"
                           ],
                           "additionalProperties": false
                         },
@@ -4360,7 +4360,7 @@
                   "steps": {
                     "type": "array",
                     "items": {
-                      "anyOf": [
+                      "oneOf": [
                         {
                           "type": "object",
                           "properties": {
@@ -4430,8 +4430,7 @@
                               "type": "string",
                               "enum": [
                                 "image"
-                              ],
-                              "default": "image"
+                              ]
                             },
                             "description": {
                               "type": "string",
@@ -4442,12 +4441,14 @@
                             "min": {
                               "type": "integer",
                               "minimum": 0,
-                              "description": "Minimum photos. 0 makes the step optional."
+                              "default": 1,
+                              "description": "Minimum photos. 0 makes the step optional. Default 1."
                             },
                             "max": {
                               "type": "integer",
                               "minimum": 1,
-                              "description": "Maximum photos."
+                              "default": 1,
+                              "description": "Maximum photos. Default 1."
                             },
                             "allow_upload": {
                               "type": "boolean",
@@ -4494,8 +4495,7 @@
                           },
                           "required": [
                             "key",
-                            "min",
-                            "max"
+                            "type"
                           ],
                           "additionalProperties": false
                         },
@@ -4713,12 +4713,14 @@
                             "min": {
                               "type": "integer",
                               "minimum": 0,
-                              "description": "Minimum files. 0 makes the step optional."
+                              "default": 1,
+                              "description": "Minimum files. 0 makes the step optional. Default 1."
                             },
                             "max": {
                               "type": "integer",
                               "minimum": 1,
-                              "description": "Maximum files."
+                              "default": 1,
+                              "description": "Maximum files. Default 1."
                             },
                             "accept": {
                               "type": "array",
@@ -4752,9 +4754,7 @@
                           },
                           "required": [
                             "key",
-                            "type",
-                            "min",
-                            "max"
+                            "type"
                           ],
                           "additionalProperties": false
                         },
@@ -4838,12 +4838,14 @@
                             "min": {
                               "type": "integer",
                               "minimum": 0,
-                              "description": "Minimum clips. 0 makes the step optional."
+                              "default": 1,
+                              "description": "Minimum clips. 0 makes the step optional. Default 1."
                             },
                             "max": {
                               "type": "integer",
                               "minimum": 1,
-                              "description": "Maximum clips."
+                              "default": 1,
+                              "description": "Maximum clips. Default 1."
                             },
                             "max_duration_sec": {
                               "type": "integer",
@@ -4855,9 +4857,7 @@
                           },
                           "required": [
                             "key",
-                            "type",
-                            "min",
-                            "max"
+                            "type"
                           ],
                           "additionalProperties": false
                         },
