@@ -37,6 +37,7 @@
         "pages": [
           "index",
           "quickstart",
+          "audits",
           "authentication"
         ]
       },

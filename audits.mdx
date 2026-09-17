@@ -1,0 +1,73 @@
+---
+title: "Audits"
+description: "Check a photo you already have."
+---
+
+A verification proves a photo taken live, right now, through a link. An **audit** checks a file that already exists: a photo someone emailed you, one sitting in your system, one you downloaded. No link, no camera, no person on the other end.
+
+RIAL runs the same checks on it (screen recapture, AI generation, found online) and, if you ask, whether it shows the object you expect and in what condition. Because no device stood behind the photo, there is no `rial: true/false`; you get the checks that tripped and decide.
+
+## One call
+
+```ts
+import { readFile } from 'node:fs/promises';
+import { createRial } from '@rial/sdk';
+
+const rial = createRial({ apiKey: process.env.RIAL_API_KEY });
+
+const result = await rial.audits.run({
+  file: await readFile('claim-9912.jpg'),
+  contentType: 'image/jpeg',
+  expectedObject: 'car',
+  conditionAspects: ['paint', 'bumper'],
+  metadata: { claimId: 'CLM-9912' },
+});
+```
+
+`audits.run` uploads the file, starts the analysis and waits for the result. It takes a few seconds.
+
+## What you get back
+
+```json
+{
+  "id": "vfy_…",
+  "status": "completed",
+  "verdict": { "signals": [{ "type": "ai_detected", "confidence": 0.81 }] },
+  "objectMatch": { "status": "match" },
+  "condition": { "score": 7.5, "label": "good" }
+}
+```
+
+- `verdict.signals` lists the checks that tripped. Empty means nothing tripped. `screen_detected` is a photo of a screen, `ai_detected` an AI-generated image, `found_online` an image already published.
+- `objectMatch` says whether the photo shows your `expectedObject`.
+- `condition` scores each aspect 0 to 10 with a one-line reason.
+
+Every field is explained in [Verdicts](/verdicts).
+
+## Don't wait
+
+`audits.create` uploads and starts the analysis, then returns at once. Read the result later with `verifications.get(id)`, or pass `webhookUrl` and RIAL POSTs `verification.completed` to you.
+
+```ts
+const started = await rial.audits.create({
+  file,
+  contentType: 'image/jpeg',
+  webhookUrl: 'https://your.app/rial',
+  metadata: { claimId: 'CLM-9912' },
+});
+started.id; // vfy_…
+```
+
+## Input
+
+| Field | Required | What it is |
+| --- | --- | --- |
+| `file` | yes | The bytes: a `Buffer`, `Uint8Array` or `Blob`. |
+| `contentType` | yes | `image/jpeg`, `image/png`, `image/webp`, `image/heic` or `image/heif`. |
+| `expectedObject` | no | What must appear in the photo. |
+| `conditionAspects` | no | Aspects to score, up to 6. |
+| `context` | no | `{ kind, summary }` describing what the photo is supposed to show. |
+| `webhookUrl` | no | HTTPS URL that receives the result. |
+| `metadata` | no | Your own keys, returned with the result and in webhooks. |
+
+Audits are billed like verifications. They go through the Node SDK today; for another language, write to ulises@rial.io.
