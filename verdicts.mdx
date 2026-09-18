@@ -24,18 +24,17 @@ pending → partially_captured → completed | expired | failed
 | `rial` | `true` when no check tripped. **Branch on this.** |
 | `signals` | The checks that tripped: `screen_detected`, `ai_detected`, `found_online`. Empty when `rial` is `true`. |
 
-## Signals
+## Which checks run
 
-Ask for them with `signals_required` when you create the verification.
+You don't choose them; RIAL does, from what you send.
 
-| You ask for | It answers | It reports |
+| When | It answers | It reports |
 | --- | --- | --- |
-| `screen` | Is this a photo of a screen? | `screen_detected` |
-| `ai` | Does this look AI-generated? | `ai_detected` |
-| `reverse` | Does this image already exist online? | `found_online` |
-| `context` | Does it show what `context` describes? | folds into `rial` |
-
-A photo uploaded from the gallery instead of captured live skips the checks that need a live camera; that never counts as a failure.
+| Always, on every photo | Is this a photo of a screen? Does it look AI-generated? | `screen_detected`, `ai_detected` |
+| On an audit | Is this image already online? | `found_online` |
+| When you describe the photo (`expected_object`, `context`) | Does it show that? | `object_match`, `context_match` |
+| When you send `condition_aspects` | In what condition? | `condition` |
+| When you send `expected_location` | Was it taken there? | `location_match` |
 
 ## Extra checks
 
