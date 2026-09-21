@@ -19,7 +19,7 @@ Base URL: `https://api.rial.io`
     curl https://api.rial.io/v1/verifications \
       -H "Authorization: Bearer $RIAL_API_KEY" \
       -H "Content-Type: application/json" \
-      -d '{ "max_captures": 1, "signals_required": ["screen", "ai"] }'
+      -d '{ "max_captures": 1 }'
     ```
 
     ```json
@@ -58,15 +58,32 @@ Each `image` step can say what must appear in it and what condition to assess.
 {
   "steps": [
     {
-      "key": "front", "label": "Front", "type": "image",
+      "key": "front",
+      "label": "Front",
+      "type": "image",
       "description": "Please take a photo of the front of your 2021 Toyota Corolla",
       "expected_object": "2021 Toyota Corolla",
-      "condition_aspects": ["paint", "bumper"]
+      "condition_aspects": ["paint", "bumper", "headlights"]
     },
     {
-      "key": "plate", "label": "License plate", "type": "image",
+      "key": "plate",
+      "label": "License plate",
+      "type": "image",
       "description": "Please take a photo of the rear license plate of your Corolla",
       "expected_object": "license plate"
+    },
+    {
+      "key": "odometer",
+      "label": "Odometer",
+      "type": "image",
+      "description": "Please take a photo of the dashboard with the odometer reading visible",
+      "expected_object": "car odometer"
+    },
+    {
+      "key": "mileage",
+      "label": "Mileage",
+      "type": "text",
+      "description": "Type the mileage shown on the odometer"
     }
   ],
   "expected_location": "Av. Córdoba 5635, Buenos Aires"
@@ -77,7 +94,7 @@ Have the photo already? See [Audits](/audits).
 
 `expected_object` rejects a photo of something else. `condition_aspects` scores each aspect 0 to 10 with a one-line reason. `expected_location` checks the photo was taken there. All three come back as separate fields next to the verdict — see [Verdicts](/verdicts).
 
-`description` is the instruction the person reads on their phone, so write it as one. The same shape works for a home claim:
+`description` is the instruction the person reads on their phone, so write it as one. `label` is the short name of the step in the results. The same shape works for a home claim:
 
 ```json
 {

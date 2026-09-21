@@ -5,7 +5,7 @@ description: "Check a photo you already have."
 
 A verification proves a photo taken live, right now, through a link. An **audit** checks a file that already exists: a photo someone emailed you, one sitting in your system, one you downloaded. No link, no camera, no person on the other end.
 
-RIAL runs the same checks on it (screen recapture, AI generation, found online) and, if you ask, whether it shows the object you expect and in what condition. Because no device stood behind the photo, there is no `rial: true/false`; you get the checks that tripped and decide.
+RIAL runs three checks on every audited file, always: is it a photo of a screen, does it look AI-generated, and is it already online. Describe the photo (`expectedObject`, `context`) and it also checks that it shows that; send `conditionAspects` and it scores the condition. You don't pick the checks. Because no device stood behind the photo, there is no `rial: true/false`; you get the checks that tripped and decide.
 
 ## One call
 
@@ -38,7 +38,7 @@ const result = await rial.audits.run({
 }
 ```
 
-- `verdict.signals` lists the checks that tripped. Empty means nothing tripped. `screen_detected` is a photo of a screen, `ai_detected` an AI-generated image, `found_online` an image already published.
+- `verdict.signals` lists the checks that tripped. Empty means all three ran and nothing tripped. `screen_detected` is a photo of a screen, `ai_detected` an AI-generated image, `found_online` an image already published. Every check runs; one tripping never stops the others, so two can appear together.
 - `objectMatch` says whether the photo shows your `expectedObject`.
 - `condition` scores each aspect 0 to 10 with a one-line reason.
 
@@ -64,9 +64,9 @@ started.id; // vfy_…
 | --- | --- | --- |
 | `file` | yes | The bytes: a `Buffer`, `Uint8Array` or `Blob`. |
 | `contentType` | yes | `image/jpeg`, `image/png`, `image/webp`, `image/heic` or `image/heif`. |
-| `expectedObject` | no | What must appear in the photo. |
-| `conditionAspects` | no | Aspects to score, up to 6. |
-| `context` | no | `{ kind, summary }` describing what the photo is supposed to show. |
+| `expectedObject` | no | What must appear in the photo. Turns on the object check. |
+| `conditionAspects` | no | Aspects to score, up to 6. Turns on the condition check. |
+| `context` | no | `{ kind, summary }` describing what the photo is supposed to show. Turns on the context check. |
 | `webhookUrl` | no | HTTPS URL that receives the result. |
 | `metadata` | no | Your own keys, returned with the result and in webhooks. |
 
