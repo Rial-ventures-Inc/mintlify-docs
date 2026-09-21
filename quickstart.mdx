@@ -58,12 +58,14 @@ Each `image` step can say what must appear in it and what condition to assess.
 {
   "steps": [
     {
-      "key": "front", "type": "image", "description": "Front of the car",
-      "expected_object": "car",
+      "key": "front", "label": "Front", "type": "image",
+      "description": "Please take a photo of the front of your 2021 Toyota Corolla",
+      "expected_object": "2021 Toyota Corolla",
       "condition_aspects": ["paint", "bumper"]
     },
     {
-      "key": "plate", "type": "image", "description": "License plate",
+      "key": "plate", "label": "License plate", "type": "image",
+      "description": "Please take a photo of the rear license plate of your Corolla",
       "expected_object": "license plate"
     }
   ],
@@ -74,6 +76,27 @@ Each `image` step can say what must appear in it and what condition to assess.
 Have the photo already? See [Audits](/audits).
 
 `expected_object` rejects a photo of something else. `condition_aspects` scores each aspect 0 to 10 with a one-line reason. `expected_location` checks the photo was taken there. All three come back as separate fields next to the verdict — see [Verdicts](/verdicts).
+
+`description` is the instruction the person reads on their phone, so write it as one. The same shape works for a home claim:
+
+```json
+{
+  "steps": [
+    {
+      "key": "damage", "label": "Water damage", "type": "image",
+      "description": "Please take a photo of the water damage on your kitchen ceiling",
+      "expected_object": "kitchen ceiling",
+      "condition_aspects": ["water stains", "cracks"]
+    },
+    {
+      "key": "meter", "label": "Water meter", "type": "image",
+      "description": "Please take a photo of your water meter showing the reading",
+      "expected_object": "water meter"
+    }
+  ],
+  "expected_location": "Av. Córdoba 5635, Buenos Aires"
+}
+```
 
 ## Reuse it: publish a template
 
