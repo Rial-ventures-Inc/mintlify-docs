@@ -24,8 +24,19 @@ The key is your secret key from the dashboard (Settings → API). Keep it on the
 ```ts
 const verification = await rial.verifications.create({
   steps: [
-    { key: 'front', type: 'image', description: 'Front of the car', expectedObject: 'car' },
-    { key: 'plate', type: 'image', description: 'License plate' },
+    {
+      key: 'front',
+      label: 'Front',
+      type: 'image',
+      description: 'Please take a photo of the front of your 2021 Toyota Corolla',
+      expectedObject: '2021 Toyota Corolla',
+    },
+    {
+      key: 'plate',
+      label: 'License plate',
+      type: 'image',
+      description: 'Please take a photo of the rear license plate of your Corolla',
+    },
   ],
   expectedLocation: 'Av. Córdoba 5635, Buenos Aires',
   metadata: { claimId: 'CLM-9912' },
@@ -105,9 +116,25 @@ const template = await rial.templates.publish({
   slug: 'car-intake',
   name: 'Car intake',
   steps: [
-    { key: 'front', type: 'image', description: 'Front of the car', expectedObject: 'car' },
-    { key: 'odometer', type: 'image', description: 'Odometer' },
-    { key: 'plate', type: 'text', description: 'License plate number' },
+    {
+      key: 'front',
+      label: 'Front',
+      type: 'image',
+      description: 'Please take a photo of the front of your 2021 Toyota Corolla',
+      expectedObject: '2021 Toyota Corolla',
+    },
+    {
+      key: 'odometer',
+      label: 'Odometer',
+      type: 'image',
+      description: 'Please take a photo of the odometer showing the mileage',
+    },
+    {
+      key: 'plate',
+      label: 'License plate',
+      type: 'text',
+      description: 'Please type your license plate number',
+    },
   ],
   expiresInSeconds: 86_400,
 });
@@ -184,7 +211,7 @@ import { readFile } from 'node:fs/promises';
 const result = await rial.audits.run({
   file: await readFile('claim-9912.jpg'),
   contentType: 'image/jpeg',
-  expectedObject: 'car',
+  expectedObject: '2021 Toyota Corolla',
   conditionAspects: ['paint', 'bumper'],
   metadata: { claimId: 'CLM-9912' },
 });

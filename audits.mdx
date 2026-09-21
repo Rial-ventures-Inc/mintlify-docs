@@ -18,7 +18,7 @@ const rial = createRial({ apiKey: process.env.RIAL_API_KEY });
 const result = await rial.audits.run({
   file: await readFile('claim-9912.jpg'),
   contentType: 'image/jpeg',
-  expectedObject: 'car',
+  expectedObject: '2021 Toyota Corolla',
   conditionAspects: ['paint', 'bumper'],
   metadata: { claimId: 'CLM-9912' },
 });
