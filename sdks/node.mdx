@@ -28,7 +28,7 @@ const verification = await rial.verifications.create({
       key: 'front',
       type: 'image',
       description: 'Please take a photo of the front of your car',
-      expectedObject: 'Toyota Corolla',
+      expectedObject: '2021 Toyota Corolla',
     },
     { key: 'plate', type: 'image', description: 'Please take a photo of your license plate' },
   ],
@@ -114,7 +114,7 @@ const template = await rial.templates.publish({
       key: 'front',
       type: 'image',
       description: 'Please take a photo of the front of your car',
-      expectedObject: 'Toyota Corolla',
+      expectedObject: '2021 Toyota Corolla',
     },
     { key: 'odometer', type: 'image', description: 'Please take a photo of your odometer' },
     { key: 'plate', type: 'text', description: 'Please type your license plate number' },
@@ -194,7 +194,7 @@ import { readFile } from 'node:fs/promises';
 const result = await rial.audits.run({
   file: await readFile('claim-9912.jpg'),
   contentType: 'image/jpeg',
-  expectedObject: 'Toyota Corolla',
+  expectedObject: '2021 Toyota Corolla',
   conditionAspects: ['paint', 'bumper'],
   metadata: { claimId: 'CLM-9912' },
 });
