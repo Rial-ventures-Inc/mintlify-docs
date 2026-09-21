@@ -24,8 +24,13 @@ The key is your secret key from the dashboard (Settings → API). Keep it on the
 ```ts
 const verification = await rial.verifications.create({
   steps: [
-    { key: 'front', type: 'image', description: 'Front of the car', expectedObject: 'car' },
-    { key: 'plate', type: 'image', description: 'License plate' },
+    {
+      key: 'front',
+      type: 'image',
+      description: 'Please take a photo of the front of your car',
+      expectedObject: 'Toyota Corolla',
+    },
+    { key: 'plate', type: 'image', description: 'Please take a photo of your license plate' },
   ],
   expectedLocation: 'Av. Córdoba 5635, Buenos Aires',
   metadata: { claimId: 'CLM-9912' },
@@ -105,9 +110,14 @@ const template = await rial.templates.publish({
   slug: 'car-intake',
   name: 'Car intake',
   steps: [
-    { key: 'front', type: 'image', description: 'Front of the car', expectedObject: 'car' },
-    { key: 'odometer', type: 'image', description: 'Odometer' },
-    { key: 'plate', type: 'text', description: 'License plate number' },
+    {
+      key: 'front',
+      type: 'image',
+      description: 'Please take a photo of the front of your car',
+      expectedObject: 'Toyota Corolla',
+    },
+    { key: 'odometer', type: 'image', description: 'Please take a photo of your odometer' },
+    { key: 'plate', type: 'text', description: 'Please type your license plate number' },
   ],
   expiresInSeconds: 86_400,
 });
@@ -184,7 +194,7 @@ import { readFile } from 'node:fs/promises';
 const result = await rial.audits.run({
   file: await readFile('claim-9912.jpg'),
   contentType: 'image/jpeg',
-  expectedObject: 'car',
+  expectedObject: 'Toyota Corolla',
   conditionAspects: ['paint', 'bumper'],
   metadata: { claimId: 'CLM-9912' },
 });
