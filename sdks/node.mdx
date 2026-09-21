@@ -26,12 +26,14 @@ const verification = await rial.verifications.create({
   steps: [
     {
       key: 'front',
+      label: 'Front',
       type: 'image',
       description: 'Please take a photo of the front of your 2021 Toyota Corolla',
       expectedObject: '2021 Toyota Corolla',
     },
     {
       key: 'plate',
+      label: 'License plate',
       type: 'image',
       description: 'Please take a photo of the rear license plate of your Corolla',
     },
@@ -116,16 +118,23 @@ const template = await rial.templates.publish({
   steps: [
     {
       key: 'front',
+      label: 'Front',
       type: 'image',
       description: 'Please take a photo of the front of your 2021 Toyota Corolla',
       expectedObject: '2021 Toyota Corolla',
     },
     {
       key: 'odometer',
+      label: 'Odometer',
       type: 'image',
       description: 'Please take a photo of the odometer showing the mileage',
     },
-    { key: 'plate', type: 'text', description: 'Please type your license plate number' },
+    {
+      key: 'plate',
+      label: 'License plate',
+      type: 'text',
+      description: 'Please type your license plate number',
+    },
   ],
   expiresInSeconds: 86_400,
 });

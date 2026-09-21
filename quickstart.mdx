@@ -58,13 +58,13 @@ Each `image` step can say what must appear in it and what condition to assess.
 {
   "steps": [
     {
-      "key": "front", "type": "image",
+      "key": "front", "label": "Front", "type": "image",
       "description": "Please take a photo of the front of your 2021 Toyota Corolla",
       "expected_object": "2021 Toyota Corolla",
       "condition_aspects": ["paint", "bumper"]
     },
     {
-      "key": "plate", "type": "image",
+      "key": "plate", "label": "License plate", "type": "image",
       "description": "Please take a photo of the rear license plate of your Corolla",
       "expected_object": "license plate"
     }
@@ -83,13 +83,13 @@ Have the photo already? See [Audits](/audits).
 {
   "steps": [
     {
-      "key": "damage", "type": "image",
+      "key": "damage", "label": "Water damage", "type": "image",
       "description": "Please take a photo of the water damage on your kitchen ceiling",
       "expected_object": "kitchen ceiling",
       "condition_aspects": ["water stains", "cracks"]
     },
     {
-      "key": "meter", "type": "image",
+      "key": "meter", "label": "Water meter", "type": "image",
       "description": "Please take a photo of your water meter showing the reading",
       "expected_object": "water meter"
     }
