@@ -54,7 +54,7 @@
         "pages": [
           "sdks/node",
           "cli",
-          "mcp",
+          "mcp-server",
           "sdks/kotlin",
           "sdks/swift",
           "sdks/react-native"
