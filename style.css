@@ -105,3 +105,8 @@ th {
 .dark .card:hover {
   border-color: var(--rial-aqua);
 }
+
+/* Card titles: the section names of the home page, one step up from body. */
+[data-component-part="card-title"] {
+  font-size: 1.25rem;
+}
