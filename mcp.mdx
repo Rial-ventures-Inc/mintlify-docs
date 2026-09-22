@@ -1,0 +1,47 @@
+---
+title: "MCP"
+description: "RIAL as tools for your AI agent."
+---
+
+RIAL runs an MCP server at `https://mcp.rial.io/mcp`. Connect it and your agent can build templates, mint links, read verdicts and manage databases in plain language.
+
+## Connect from claude.ai
+
+Add `https://mcp.rial.io/mcp` as a custom connector. Claude opens the RIAL login, you pick the account to delegate and press **Authorize**. Done.
+
+## Connect with an API key
+
+Any MCP client that speaks Streamable HTTP works. Send your secret key as a bearer:
+
+```json
+{
+  "mcpServers": {
+    "rial": {
+      "type": "http",
+      "url": "https://mcp.rial.io/mcp",
+      "headers": { "Authorization": "Bearer rk_secret_..." }
+    }
+  }
+}
+```
+
+The server forwards the key to the API on every call and never stores it.
+
+## Tools
+
+| Area | Tools |
+| --- | --- |
+| Templates | `list_templates`, `get_template`, `create_template`, `update_template` |
+| Verifications | `create_inspection`, `create_inspection_from_template`, `check_verification`, `list_verifications`, `get_verification_events` |
+| Databases | `list_databases`, `create_database`, `update_database`, `sync_database` |
+| Google Sheets | `list_sheets_connections`, `preview_sheet`, `create_sheet_database` |
+| CSV import | `preview_csv_import`, `start_csv_import`, `get_import_job` |
+| Account | `get_usage` |
+
+Not exposed: deleting templates, buying credits, managing API keys or members. Those stay in the dashboard.
+
+## Try it
+
+> Create a template called "Car intake" that asks for the front of a 2021 Toyota Corolla and its license plate, then give me the link.
+
+The agent calls `create_template` and hands you the public URL. Send it; results come back through `check_verification` or the [dashboard](https://app.rial.io).
