@@ -47,7 +47,7 @@ Base URL: `https://api.rial.io`
 </Steps>
 
 <Tip>
-  Don't poll. Pass `"webhook_url": "https://your.app/rial"` when creating the verification and RIAL POSTs `verification.created` and `verification.completed` to that URL, each with your `metadata` so you can route it. Retries on failure. Treat the event as a notification: confirm with `GET /v1/verifications/{id}` before you act on it.
+  Don't poll. Pass `"webhook_url": "https://your.app/rial"` when creating the verification and Rial POSTs `verification.created` and `verification.completed` to that URL, each with your `metadata` so you can route it. Retries on failure. Treat the event as a notification: confirm with `GET /v1/verifications/{id}` before you act on it.
 </Tip>
 
 ## Ask for more than one photo
