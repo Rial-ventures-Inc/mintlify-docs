@@ -3,9 +3,9 @@ title: "Audits"
 description: "Check a photo you already have."
 ---
 
-A verification proves a photo taken live, right now, through a link. An **audit** checks a file that already exists: a photo someone emailed you, one sitting in your system, one you downloaded. No link, no camera, no person on the other end.
+A verification certifies a photo taken live, right now, through a link. An **audit** checks a file that already exists: a photo someone emailed you, one sitting in your system, one you downloaded. No link, no camera, no person on the other end.
 
-RIAL runs three checks on every audited file, always: is it a photo of a screen, does it look AI-generated, and is it already online. Describe the photo (`expectedObject`, `context`) and it also checks that it shows that; send `conditionAspects` and it scores the condition. You don't pick the checks. Because no device stood behind the photo, there is no `rial: true/false`; you get the checks that tripped and decide.
+Rial runs three checks on every audited file, always: is it a photo of a screen, does it look AI-generated, and is it already online. Describe the photo (`expectedObject`, `context`) and it also checks that it shows that; send `conditionAspects` and it scores the condition. You don't pick the checks. Because no device stood behind the photo, there is no `rial: true/false`; you get the checks that tripped and decide.
 
 ## One call
 
@@ -46,7 +46,7 @@ Every field is explained in [Verdicts](/verdicts).
 
 ## Don't wait
 
-`audits.create` uploads and starts the analysis, then returns at once. Read the result later with `verifications.get(id)`, or pass `webhookUrl` and RIAL POSTs `verification.completed` to you.
+`audits.create` uploads and starts the analysis, then returns at once. Read the result later with `verifications.get(id)`, or pass `webhookUrl` and Rial POSTs `verification.completed` to you.
 
 ```ts
 const started = await rial.audits.create({
