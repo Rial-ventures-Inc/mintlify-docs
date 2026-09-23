@@ -1,7 +1,6 @@
-/* rial — brand 2026 layer over Mintlify's willow theme.
-   Ground: porcelain. Ink: carbon. One accent: aqua, used as a mark, never as a fill.
-   Cormorant Garamond for display, Inter for reading, Chivo Mono for machine detail. */
-@import url('https://fonts.googleapis.com/css2?family=Chivo+Mono:wght@300;400;500&display=swap');
+/* rial — brand layer over Mintlify's mint theme (Didit-style look).
+   Ground: white in light, carbon in dark. Ink: carbon. One accent: aqua, used as a mark, never as a fill.
+   Inter for everything, Mintlify's default mono for code. */
 
 :root {
   --rial-black: #000000;
@@ -10,86 +9,42 @@
   --rial-parchment: #f1eae3;
   --rial-porcelain: #fffdf7;
   --rial-aqua: #5edcf0;
+  --rial-aqua-ink: #0f9db3;
   --rial-lemon: #efecbc;
   --rial-ice: #b6f2e3;
   --rial-rule: #e4e3e0;
-  --rial-mono: 'Chivo Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
 }
 
-/* Display type: Cormorant at 500, never bold, tight leading. */
-h1,
-h2 {
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  line-height: 1.1;
-}
-
-h1 {
-  font-size: 2.6rem;
-}
-
-/* Machine detail reads in mono: code, ids, hashes, table headers. */
-code,
-kbd,
-pre,
-th {
-  font-family: var(--rial-mono);
-}
-
-th {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-/* Eyebrow: aqua square + tracked mono caps, as on the guideline pages. */
+/* Eyebrow: the small label above a section, like Didit's "OUTCOMES". Sans, tracked, accent colour. */
 .rial-eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 0.6rem;
-  font-family: var(--rial-mono);
-  font-size: 13px;
-  font-weight: 400;
-  letter-spacing: 0.18em;
+  gap: 0.5rem;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--rial-carbon);
+  color: var(--rial-aqua-ink);
 }
 
 .dark .rial-eyebrow {
-  color: var(--rial-porcelain);
+  color: var(--rial-aqua);
 }
 
 .rial-eyebrow::before {
   content: '';
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   border-radius: 2px;
   background: var(--rial-aqua);
 }
 
-/* Hairlines, not shadows. Aqua only as a light wash on hover. */
-.card {
-  box-shadow: none;
-  border-color: var(--rial-rule);
-}
-
-.card:hover {
-  border-color: var(--rial-carbon);
-  background: linear-gradient(135deg, rgba(94, 220, 240, 0.12), transparent 60%);
-}
-
-/* Reading size: the willow default reads small next to the deck. */
-#content {
-  font-size: 17px;
-  line-height: 1.65;
-}
-
 /* Lede: the one paragraph that says everything RIAL does. */
 .rial-lede {
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   line-height: 1.5;
-  margin: 1rem 0 2rem;
+  margin: 0.75rem 0 1.5rem;
+  font-weight: 500;
   color: var(--rial-carbon);
 }
 
@@ -97,16 +52,15 @@ th {
   color: var(--rial-porcelain);
 }
 
-/* The porcelain hairline glares on the dark ground. */
-.dark .card {
-  border-color: rgba(255, 253, 247, 0.14);
+/* Cards: soft corners, hairline border, aqua wash on hover. */
+.card {
+  border-radius: 12px;
+}
+
+.card:hover {
+  border-color: var(--rial-aqua-ink);
 }
 
 .dark .card:hover {
   border-color: var(--rial-aqua);
-}
-
-/* Card titles: the section names of the home page, one step up from body. */
-[data-component-part="card-title"] {
-  font-size: 1.25rem;
 }

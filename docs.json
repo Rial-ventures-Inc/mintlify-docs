@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "willow",
+  "theme": "mint",
   "name": "RIAL",
   "description": "Prove a photo is real. Developer documentation for the RIAL API, CLI and native SDKs.",
   "colors": {
@@ -10,20 +10,14 @@
   },
   "appearance": {
     "default": "dark",
-    "strict": true
+    "strict": false
   },
   "fonts": {
-    "heading": {
-      "family": "Cormorant Garamond",
-      "weight": 500
-    },
-    "body": {
-      "family": "Inter",
-      "weight": 400
-    }
+    "family": "Inter"
   },
   "styling": {
-    "codeblocks": "system"
+    "codeblocks": "dark",
+    "eyebrows": "breadcrumbs"
   },
   "favicon": "/rial-isotype.svg",
   "logo": {
@@ -32,48 +26,76 @@
     "href": "https://www.rial.io"
   },
   "navigation": {
-    "groups": [
+    "tabs": [
       {
-        "group": "Start",
-        "pages": [
-          "index",
-          "quickstart",
-          "audits",
-          "authentication"
+        "tab": "Get started",
+        "icon": "rocket",
+        "groups": [
+          {
+            "group": "Start",
+            "icon": "flag",
+            "pages": [
+              "index",
+              "quickstart",
+              "audits",
+              "authentication"
+            ]
+          },
+          {
+            "group": "Results",
+            "icon": "badge-check",
+            "pages": [
+              "verdicts",
+              "errors"
+            ]
+          }
         ]
       },
       {
-        "group": "Results",
-        "pages": [
-          "verdicts",
-          "errors"
+        "tab": "SDKs & tools",
+        "icon": "code",
+        "groups": [
+          {
+            "group": "Backend",
+            "icon": "server",
+            "pages": [
+              "sdks/node",
+              "cli",
+              "mcp-server"
+            ]
+          },
+          {
+            "group": "Mobile capture",
+            "icon": "mobile",
+            "pages": [
+              "sdks/kotlin",
+              "sdks/swift",
+              "sdks/react-native"
+            ]
+          },
+          {
+            "group": "Legal",
+            "icon": "scale-balanced",
+            "pages": [
+              "legal/sdk-license"
+            ]
+          }
         ]
       },
       {
-        "group": "Tools",
-        "pages": [
-          "sdks/node",
-          "cli",
-          "mcp-server",
-          "sdks/kotlin",
-          "sdks/swift",
-          "sdks/react-native"
-        ]
-      },
-      {
-        "group": "API reference",
+        "tab": "API reference",
+        "icon": "book-open",
         "openapi": "api-reference/openapi.json"
-      },
-      {
-        "group": "Legal",
-        "pages": [
-          "legal/sdk-license"
-        ]
       }
     ]
   },
   "navbar": {
     "links": [
+      {
+        "label": "Support",
+        "icon": "message",
+        "href": "mailto:ulises@rial.io"
+      },
       {
         "label": "Dashboard",
         "href": "https://app.rial.io"
@@ -117,13 +139,10 @@
       "copy",
       "view",
       "chatgpt",
-      "claude"
+      "claude",
+      "cursor",
+      "vscode",
+      "mcp"
     ]
-  },
-  "background": {
-    "color": {
-      "light": "#FFFDF7",
-      "dark": "#131312"
-    }
   }
 }
