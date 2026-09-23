@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "willow",
+  "theme": "mint",
   "name": "RIAL",
   "description": "Prove a photo is real. Developer documentation for the RIAL API, CLI and native SDKs.",
   "colors": {
@@ -9,21 +9,15 @@
     "dark": "#1C1C1A"
   },
   "appearance": {
-    "default": "dark",
-    "strict": true
+    "default": "light",
+    "strict": false
   },
   "fonts": {
-    "heading": {
-      "family": "Cormorant Garamond",
-      "weight": 500
-    },
-    "body": {
-      "family": "Inter",
-      "weight": 400
-    }
+    "family": "Inter"
   },
   "styling": {
-    "codeblocks": "system"
+    "codeblocks": "dark",
+    "eyebrows": "breadcrumbs"
   },
   "favicon": "/rial-isotype.svg",
   "logo": {
@@ -32,52 +26,65 @@
     "href": "https://www.rial.io"
   },
   "navigation": {
-    "groups": [
+    "global": {
+      "anchors": [
+        { "anchor": "API reference", "icon": "code", "href": "https://docs.rial.io/api-reference" },
+        { "anchor": "Dashboard", "icon": "gauge", "href": "https://app.rial.io" },
+        { "anchor": "OpenAPI spec", "icon": "file-code", "href": "https://docs.rial.io/api-reference/openapi.json" },
+        { "anchor": "MCP server", "icon": "plug", "href": "https://docs.rial.io/mcp-server" },
+        { "anchor": "Agent skills", "icon": "robot", "href": "https://docs.rial.io/.well-known/agent-skills/rial/skill.md" },
+        { "anchor": "Status", "icon": "signal", "href": "https://status.rial.io" }
+      ]
+    },
+    "tabs": [
       {
-        "group": "Start",
-        "pages": [
-          "index",
-          "quickstart",
-          "audits",
-          "authentication"
+        "tab": "Get started",
+        "icon": "rocket",
+        "groups": [
+          {
+            "group": "Start",
+            "icon": "flag",
+            "pages": ["index", "quickstart", "audits", "authentication"]
+          },
+          {
+            "group": "Results",
+            "icon": "badge-check",
+            "pages": ["verdicts", "errors"]
+          }
         ]
       },
       {
-        "group": "Results",
-        "pages": [
-          "verdicts",
-          "errors"
+        "tab": "SDKs & tools",
+        "icon": "code",
+        "groups": [
+          {
+            "group": "Backend",
+            "icon": "server",
+            "pages": ["sdks/node", "cli", "mcp-server"]
+          },
+          {
+            "group": "Mobile capture",
+            "icon": "mobile",
+            "pages": ["sdks/kotlin", "sdks/swift", "sdks/react-native"]
+          },
+          {
+            "group": "Legal",
+            "icon": "scale-balanced",
+            "pages": ["legal/sdk-license"]
+          }
         ]
       },
       {
-        "group": "Tools",
-        "pages": [
-          "sdks/node",
-          "cli",
-          "mcp-server",
-          "sdks/kotlin",
-          "sdks/swift",
-          "sdks/react-native"
-        ]
-      },
-      {
-        "group": "API reference",
+        "tab": "API reference",
+        "icon": "book-open",
         "openapi": "api-reference/openapi.json"
-      },
-      {
-        "group": "Legal",
-        "pages": [
-          "legal/sdk-license"
-        ]
       }
     ]
   },
   "navbar": {
     "links": [
-      {
-        "label": "Dashboard",
-        "href": "https://app.rial.io"
-      }
+      { "label": "Support", "icon": "message", "href": "mailto:ulises@rial.io" },
+      { "label": "Dashboard", "href": "https://app.rial.io" }
     ],
     "primary": {
       "type": "button",
@@ -90,18 +97,9 @@
       {
         "header": "RIAL",
         "items": [
-          {
-            "label": "rial.io",
-            "href": "https://www.rial.io"
-          },
-          {
-            "label": "Dashboard",
-            "href": "https://app.rial.io"
-          },
-          {
-            "label": "Status",
-            "href": "https://status.rial.io"
-          }
+          { "label": "rial.io", "href": "https://www.rial.io" },
+          { "label": "Dashboard", "href": "https://app.rial.io" },
+          { "label": "Status", "href": "https://status.rial.io" }
         ]
       }
     ]
@@ -113,17 +111,6 @@
     }
   },
   "contextual": {
-    "options": [
-      "copy",
-      "view",
-      "chatgpt",
-      "claude"
-    ]
-  },
-  "background": {
-    "color": {
-      "light": "#FFFDF7",
-      "dark": "#131312"
-    }
+    "options": ["copy", "view", "chatgpt", "claude", "cursor", "vscode", "mcp"]
   }
 }
