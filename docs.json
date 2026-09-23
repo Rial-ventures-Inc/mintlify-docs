@@ -9,7 +9,7 @@
     "dark": "#1C1C1A"
   },
   "appearance": {
-    "default": "light",
+    "default": "dark",
     "strict": false
   },
   "fonts": {
@@ -26,16 +26,6 @@
     "href": "https://www.rial.io"
   },
   "navigation": {
-    "global": {
-      "anchors": [
-        { "anchor": "API reference", "icon": "code", "href": "https://docs.rial.io/api-reference" },
-        { "anchor": "Dashboard", "icon": "gauge", "href": "https://app.rial.io" },
-        { "anchor": "OpenAPI spec", "icon": "file-code", "href": "https://docs.rial.io/api-reference/openapi.json" },
-        { "anchor": "MCP server", "icon": "plug", "href": "https://docs.rial.io/mcp-server" },
-        { "anchor": "Agent skills", "icon": "robot", "href": "https://docs.rial.io/.well-known/agent-skills/rial/skill.md" },
-        { "anchor": "Status", "icon": "signal", "href": "https://status.rial.io" }
-      ]
-    },
     "tabs": [
       {
         "tab": "Get started",
@@ -44,12 +34,20 @@
           {
             "group": "Start",
             "icon": "flag",
-            "pages": ["index", "quickstart", "audits", "authentication"]
+            "pages": [
+              "index",
+              "quickstart",
+              "audits",
+              "authentication"
+            ]
           },
           {
             "group": "Results",
             "icon": "badge-check",
-            "pages": ["verdicts", "errors"]
+            "pages": [
+              "verdicts",
+              "errors"
+            ]
           }
         ]
       },
@@ -60,17 +58,27 @@
           {
             "group": "Backend",
             "icon": "server",
-            "pages": ["sdks/node", "cli", "mcp-server"]
+            "pages": [
+              "sdks/node",
+              "cli",
+              "mcp-server"
+            ]
           },
           {
             "group": "Mobile capture",
             "icon": "mobile",
-            "pages": ["sdks/kotlin", "sdks/swift", "sdks/react-native"]
+            "pages": [
+              "sdks/kotlin",
+              "sdks/swift",
+              "sdks/react-native"
+            ]
           },
           {
             "group": "Legal",
             "icon": "scale-balanced",
-            "pages": ["legal/sdk-license"]
+            "pages": [
+              "legal/sdk-license"
+            ]
           }
         ]
       },
@@ -83,8 +91,15 @@
   },
   "navbar": {
     "links": [
-      { "label": "Support", "icon": "message", "href": "mailto:ulises@rial.io" },
-      { "label": "Dashboard", "href": "https://app.rial.io" }
+      {
+        "label": "Support",
+        "icon": "message",
+        "href": "mailto:ulises@rial.io"
+      },
+      {
+        "label": "Dashboard",
+        "href": "https://app.rial.io"
+      }
     ],
     "primary": {
       "type": "button",
@@ -97,9 +112,18 @@
       {
         "header": "RIAL",
         "items": [
-          { "label": "rial.io", "href": "https://www.rial.io" },
-          { "label": "Dashboard", "href": "https://app.rial.io" },
-          { "label": "Status", "href": "https://status.rial.io" }
+          {
+            "label": "rial.io",
+            "href": "https://www.rial.io"
+          },
+          {
+            "label": "Dashboard",
+            "href": "https://app.rial.io"
+          },
+          {
+            "label": "Status",
+            "href": "https://status.rial.io"
+          }
         ]
       }
     ]
@@ -111,6 +135,14 @@
     }
   },
   "contextual": {
-    "options": ["copy", "view", "chatgpt", "claude", "cursor", "vscode", "mcp"]
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "cursor",
+      "vscode",
+      "mcp"
+    ]
   }
 }
