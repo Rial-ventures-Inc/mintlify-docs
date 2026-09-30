@@ -84,7 +84,7 @@
                 "properties": {
                   "rial": {
                     "type": "boolean",
-                    "description": "True when no check tripped."
+                    "description": "True when the dashboard verdict is verified and no exposed fraud check tripped."
                   },
                   "signals": {
                     "type": "array",
@@ -98,17 +98,35 @@
                       "description": "A check that tripped: `screen_detected` (photo of a screen), `ai_detected` (AI-generated), `found_online` (already published)."
                     },
                     "description": "The checks that tripped."
+                  },
+                  "unavailable": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "screen",
+                        "ai",
+                        "reverse",
+                        "context"
+                      ]
+                    },
+                    "minItems": 1,
+                    "description": "Checks that could not be completed because the detector never answered after every retry: `screen` (photo of a screen), `ai` (AI-generated), `reverse` (already online), `context`, `depth`. Present only when non-empty; `rial` is then false — the photo was not fully checked, which is not the same as a finding."
                   }
                 },
                 "required": [
                   "rial",
                   "signals"
                 ],
-                "description": "Verdict of a live capture. Branch on `rial`; `signals` says why when it is false."
+                "description": "Verdict of a live capture. Branch on `rial`; `signals` says why when it is false, and `unavailable` when a check could not be completed."
               },
               {
                 "type": "object",
                 "properties": {
+                  "rial": {
+                    "type": "boolean",
+                    "description": "Rial/no Rial result of the audit, matching the dashboard."
+                  },
                   "signals": {
                     "type": "array",
                     "items": {
@@ -143,8 +161,7 @@
                             }
                           },
                           "required": [
-                            "type",
-                            "confidence"
+                            "type"
                           ]
                         },
                         {
@@ -164,12 +181,27 @@
                       ],
                       "description": "A check that tripped on an audited file."
                     }
+                  },
+                  "unavailable": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "screen",
+                        "ai",
+                        "reverse",
+                        "context"
+                      ]
+                    },
+                    "minItems": 1,
+                    "description": "Checks that could not be completed because the detector never answered after every retry: `screen` (photo of a screen), `ai` (AI-generated), `reverse` (already online), `context`, `depth`. Present only when non-empty; `rial` is then false — the photo was not fully checked, which is not the same as a finding."
                   }
                 },
                 "required": [
+                  "rial",
                   "signals"
                 ],
-                "description": "Verdict of an audit (`mode: \"audit\"`, a file that already existed). No `rial`: with no live capture behind it, the checks are reported for you to weigh. Empty `signals` means nothing tripped."
+                "description": "Verdict of an audit (`mode: \"audit\"`, a file that already existed). Includes the Rial/no Rial result and the checks that tripped. This is an analysis result, not proof of live capture."
               }
             ]
           },
@@ -370,6 +402,27 @@
                   "description": "One scored aspect of the condition assessment. `name` echoes the free-form tenant-defined aspect from `condition_aspects` verbatim — any language, any domain, no fixed vocabulary. `score` is 0..10 with one decimal; `reasoning` is a one-or-two-sentence visual justification."
                 }
               },
+              "provenance": {
+                "type": "object",
+                "properties": {
+                  "model": {
+                    "type": "string"
+                  },
+                  "prompt": {
+                    "type": "string"
+                  },
+                  "instructions_sha256": {
+                    "type": "string",
+                    "minLength": 64,
+                    "maxLength": 64
+                  }
+                },
+                "required": [
+                  "model",
+                  "prompt"
+                ],
+                "description": "What produced this assessment: the model, the prompt (`id@version`) and, when your organization's condition instructions applied, their SHA-256 — so a result stays tied to the guidance and model of its day. Absent on assessments written before this field existed."
+              },
               "steps": {
                 "type": "object",
                 "additionalProperties": {
@@ -412,6 +465,27 @@
                         ],
                         "description": "One scored aspect of the condition assessment. `name` echoes the free-form tenant-defined aspect from `condition_aspects` verbatim — any language, any domain, no fixed vocabulary. `score` is 0..10 with one decimal; `reasoning` is a one-or-two-sentence visual justification."
                       }
+                    },
+                    "provenance": {
+                      "type": "object",
+                      "properties": {
+                        "model": {
+                          "type": "string"
+                        },
+                        "prompt": {
+                          "type": "string"
+                        },
+                        "instructions_sha256": {
+                          "type": "string",
+                          "minLength": 64,
+                          "maxLength": 64
+                        }
+                      },
+                      "required": [
+                        "model",
+                        "prompt"
+                      ],
+                      "description": "What produced this assessment: the model, the prompt (`id@version`) and, when your organization's condition instructions applied, their SHA-256 — so a result stays tied to the guidance and model of its day. Absent on assessments written before this field existed."
                     }
                   },
                   "required": [
@@ -445,28 +519,252 @@
                 "type": "integer",
                 "minimum": 0
               },
-              "screen": {
+              "scene": {
                 "type": "object",
                 "properties": {
-                  "screen_detected": {
-                    "type": "boolean"
+                  "verdict": {
+                    "type": "string",
+                    "enum": [
+                      "match",
+                      "mismatch",
+                      "inconclusive"
+                    ]
                   },
                   "confidence": {
                     "type": "number",
                     "minimum": 0,
                     "maximum": 1
                   },
-                  "decided_at_ms": {
-                    "type": "integer",
-                    "minimum": 0
+                  "reasoning": {
+                    "type": "string"
                   }
                 },
                 "required": [
-                  "screen_detected",
+                  "verdict",
                   "confidence",
-                  "decided_at_ms"
+                  "reasoning"
                 ],
-                "description": "Worst-case across sampled frames: one flagged frame flags the clip; `decided_at_ms` is the clip position of the deciding frame."
+                "description": "Whether the clip as a whole shows what the video step's `expected_scene` asked for, judged once over a contact sheet of its frames, with the reason. Absent when the step declared no scene or the check did not run."
+              },
+              "condition": {
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 10
+                  },
+                  "label": {
+                    "type": "string",
+                    "enum": [
+                      "good",
+                      "fair",
+                      "poor"
+                    ]
+                  },
+                  "aspects": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "score": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 10
+                        },
+                        "reasoning": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "score",
+                        "reasoning"
+                      ],
+                      "description": "One scored aspect of the condition assessment. `name` echoes the free-form tenant-defined aspect from `condition_aspects` verbatim — any language, any domain, no fixed vocabulary. `score` is 0..10 with one decimal; `reasoning` is a one-or-two-sentence visual justification."
+                    }
+                  },
+                  "provenance": {
+                    "type": "object",
+                    "properties": {
+                      "model": {
+                        "type": "string"
+                      },
+                      "prompt": {
+                        "type": "string"
+                      },
+                      "instructions_sha256": {
+                        "type": "string",
+                        "minLength": 64,
+                        "maxLength": 64
+                      }
+                    },
+                    "required": [
+                      "model",
+                      "prompt"
+                    ],
+                    "description": "What produced this assessment: the model, the prompt (`id@version`) and, when your organization's condition instructions applied, their SHA-256 — so a result stays tied to the guidance and model of its day. Absent on assessments written before this field existed."
+                  }
+                },
+                "required": [
+                  "score",
+                  "label",
+                  "aspects"
+                ],
+                "description": "The video step's `condition_aspects` scored over a contact sheet of the clip — the same 0..10 rubric and labels a photo step gets, read across the whole recording. Absent when the step declared no aspects or the check did not run."
+              },
+              "signals": {
+                "type": "object",
+                "properties": {
+                  "screen": {
+                    "type": "object",
+                    "properties": {
+                      "detected": {
+                        "type": "boolean"
+                      },
+                      "frames_evaluated": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "flagged_ratio": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "longest_run_ms": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "flagged_at_ms": {
+                        "type": "array",
+                        "items": {
+                          "type": "integer",
+                          "minimum": 0
+                        }
+                      }
+                    },
+                    "required": [
+                      "detected",
+                      "frames_evaluated",
+                      "flagged_ratio",
+                      "longest_run_ms",
+                      "flagged_at_ms"
+                    ],
+                    "description": "How one check behaved across the sampled frames. `detected` is true when it tripped on at least half of `frames_evaluated` or on three consecutive frames; isolated trips are listed in `flagged_at_ms` without deciding."
+                  },
+                  "ai": {
+                    "type": "object",
+                    "properties": {
+                      "detected": {
+                        "type": "boolean"
+                      },
+                      "frames_evaluated": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "flagged_ratio": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "longest_run_ms": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "flagged_at_ms": {
+                        "type": "array",
+                        "items": {
+                          "type": "integer",
+                          "minimum": 0
+                        }
+                      }
+                    },
+                    "required": [
+                      "detected",
+                      "frames_evaluated",
+                      "flagged_ratio",
+                      "longest_run_ms",
+                      "flagged_at_ms"
+                    ],
+                    "description": "How one check behaved across the sampled frames. `detected` is true when it tripped on at least half of `frames_evaluated` or on three consecutive frames; isolated trips are listed in `flagged_at_ms` without deciding."
+                  },
+                  "reverse": {
+                    "type": "object",
+                    "properties": {
+                      "detected": {
+                        "type": "boolean"
+                      },
+                      "frames_evaluated": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "flagged_ratio": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "longest_run_ms": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "flagged_at_ms": {
+                        "type": "array",
+                        "items": {
+                          "type": "integer",
+                          "minimum": 0
+                        }
+                      }
+                    },
+                    "required": [
+                      "detected",
+                      "frames_evaluated",
+                      "flagged_ratio",
+                      "longest_run_ms",
+                      "flagged_at_ms"
+                    ],
+                    "description": "How one check behaved across the sampled frames. `detected` is true when it tripped on at least half of `frames_evaluated` or on three consecutive frames; isolated trips are listed in `flagged_at_ms` without deciding."
+                  },
+                  "context": {
+                    "type": "object",
+                    "properties": {
+                      "detected": {
+                        "type": "boolean"
+                      },
+                      "frames_evaluated": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "flagged_ratio": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "longest_run_ms": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "flagged_at_ms": {
+                        "type": "array",
+                        "items": {
+                          "type": "integer",
+                          "minimum": 0
+                        }
+                      }
+                    },
+                    "required": [
+                      "detected",
+                      "frames_evaluated",
+                      "flagged_ratio",
+                      "longest_run_ms",
+                      "flagged_at_ms"
+                    ],
+                    "description": "How one check behaved across the sampled frames. `detected` is true when it tripped on at least half of `frames_evaluated` or on three consecutive frames; isolated trips are listed in `flagged_at_ms` without deciding."
+                  }
+                },
+                "description": "One entry per check that ran on the clip; a missing entry was not evaluated, never clean."
               },
               "analyzed_at": {
                 "type": "string",
@@ -477,12 +775,51 @@
               "capture_id",
               "frames_extracted",
               "frames_analyzed",
+              "signals",
               "analyzed_at"
             ],
-            "description": "Screen-detection analysis of a video-step clip, sampled at one frame per second. Written asynchronously after capture — poll or use webhooks; absent until the worker has run."
+            "description": "Analysis of a video-step clip, sampled at one frame per second and run through the same checks a photo gets. Written asynchronously after capture — poll or use webhooks; absent until the worker has run."
           },
           "ocr_primary": {
             "type": "string"
+          },
+          "similar_photo": {
+            "type": "object",
+            "properties": {
+              "verification_id": {
+                "type": "string"
+              },
+              "capture_id": {
+                "type": "string"
+              },
+              "distance": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 64
+              },
+              "method": {
+                "type": "string",
+                "enum": [
+                  "phash",
+                  "embedding"
+                ]
+              },
+              "cosine": {
+                "type": "number",
+                "minimum": -1,
+                "maximum": 1
+              },
+              "inliers": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "verification_id",
+              "capture_id",
+              "distance"
+            ],
+            "description": "An earlier verification of yours whose photo matches this one. `method: \"phash\"`: the perceptual hashes are within threshold (Hamming `distance` 0–64; 0 is bit-identical) — a re-upload. `method: \"embedding\"`: the hashes differ but the photos are the same scene by embedding (`cosine`) and a geometric check confirmed it (`inliers`) — a screenshot or a crop. Present only when a match was found. It does not change `rial`: a legitimate re-submission and a recycled photo look the same — your reviewer decides."
           },
           "answers": {
             "type": "object",
@@ -694,6 +1031,8 @@
       },
       "CreateVerificationRequest": {
         "type": "object",
+        "additionalProperties": false,
+        "description": "Body for `POST /v1/verifications`. All fields optional — sensible defaults: `max_captures: 1`, `expires_in_seconds: 3600`. Every photo gets the screen and AI checks; an audit adds found-online; describing the photo (`expected_object`, `context`) turns the context check on. Capture quantity comes as EITHER `max_captures` (N anonymous captures) OR `steps` (guided slots with key/description/min/max) — never both. `context` is what the analysis pipeline cross-references against the capture; `metadata` is opaque pass-through echoed back on every webhook event.",
         "properties": {
           "max_captures": {
             "type": "integer",
@@ -1191,11 +1530,39 @@
                       "default": 1,
                       "description": "Maximum clips. Default 1."
                     },
+                    "expected_object": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200,
+                      "description": "What the clip must show. Every sampled frame is checked against it and the clip reads as object match / no match by persistence."
+                    },
+                    "expected_scene": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200,
+                      "description": "What the clip as a whole must show, in order (\"a walk around the car with the hood open, ending on the engine bay\"). Judged once per clip over a contact sheet of its frames; the clip reads as scene match / no match with the reason. Absent: no scene check."
+                    },
+                    "audio": {
+                      "type": "boolean",
+                      "default": false,
+                      "description": "Record the microphone with the clip. The person is asked for microphone access on this step; a refusal still records the video, without sound. Default false."
+                    },
+                    "condition_aspects": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 40
+                      },
+                      "minItems": 1,
+                      "maxItems": 6,
+                      "description": "Aspects to score on the clip. Judged once per clip over a contact sheet of its frames, like `expected_scene`; scored 0..10 with a reason each. Overrides the verification-level value."
+                    },
                     "max_duration_sec": {
                       "type": "integer",
                       "minimum": 1,
-                      "maximum": 30,
-                      "default": 30,
+                      "maximum": 60,
+                      "default": 60,
                       "description": "Maximum length of each clip, in seconds."
                     }
                   },
@@ -1435,24 +1802,6 @@
             "default": 3600,
             "description": "How long the capture link stays open, in seconds. Default 3600 (one hour), max 86400."
           },
-          "signals_required": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "screen",
-                "ai",
-                "reverse",
-                "context"
-              ]
-            },
-            "minItems": 1,
-            "default": [
-              "screen",
-              "ai"
-            ],
-            "description": "Checks to run on each photo: `screen` (photo of a screen), `ai` (AI-generated), `reverse` (already online), `context` (matches `context`). Default `[\"screen\", \"ai\"]`."
-          },
           "seal": {
             "type": "boolean",
             "default": true,
@@ -1515,6 +1864,13 @@
             "maxLength": 254,
             "format": "email",
             "description": "Email that receives the result. `null` opts this verification out; absent uses your account default."
+          },
+          "report_language": {
+            "type": "string",
+            "enum": [
+              "es",
+              "en"
+            ]
           },
           "notify_subject_template": {
             "type": [
@@ -1690,9 +2046,7 @@
             "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
             "description": "Brand profile shown on the capture page. Absent = your default brand."
           }
-        },
-        "additionalProperties": false,
-        "description": "Body for `POST /v1/verifications`. All fields optional — sensible defaults: `max_captures: 1`, `expires_in_seconds: 3600`, `signals_required: [\"screen\", \"ai\"]`. Capture quantity comes as EITHER `max_captures` (N anonymous captures) OR `steps` (guided slots with key/description/min/max) — never both. `context` is what the analysis pipeline cross-references against the capture; `metadata` is opaque pass-through echoed back on every webhook event."
+        }
       },
       "MintFromTemplateRequest": {
         "type": "object",
@@ -1910,12 +2264,10 @@
             "properties": {}
           },
           "expected_location": {
-            "type": "object",
-            "properties": {}
+            "type": "string"
           },
           "expected_object": {
-            "type": "object",
-            "properties": {}
+            "type": "string"
           },
           "condition_aspects": {
             "type": "array",
@@ -1927,6 +2279,13 @@
           "notify_email": {
             "type": "string",
             "format": "email"
+          },
+          "report_language": {
+            "type": "string",
+            "enum": [
+              "es",
+              "en"
+            ]
           },
           "notify_subject_template": {
             "type": "string"
@@ -2346,10 +2705,6 @@
               "example": {
                 "max_captures": 3,
                 "expires_in_seconds": 3600,
-                "signals_required": [
-                  "screen",
-                  "ai"
-                ],
                 "context": {
                   "kind": "damage_claim",
                   "summary": "Toyota Corolla front bumper"
@@ -2570,6 +2925,19 @@
             },
             "required": false,
             "name": "mode",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 40,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+              "description": "Matches the template and all its historical URL slugs after renames. An unknown or deleted template falls back to an exact stored slug match. Verifications minted without a template never match.",
+              "example": "warehouse-intake"
+            },
+            "required": false,
+            "name": "template_slug",
             "in": "query"
           }
         ],
@@ -3726,11 +4094,39 @@
                               "default": 1,
                               "description": "Maximum clips. Default 1."
                             },
+                            "expected_object": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 200,
+                              "description": "What the clip must show. Every sampled frame is checked against it and the clip reads as object match / no match by persistence."
+                            },
+                            "expected_scene": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 200,
+                              "description": "What the clip as a whole must show, in order (\"a walk around the car with the hood open, ending on the engine bay\"). Judged once per clip over a contact sheet of its frames; the clip reads as scene match / no match with the reason. Absent: no scene check."
+                            },
+                            "audio": {
+                              "type": "boolean",
+                              "default": false,
+                              "description": "Record the microphone with the clip. The person is asked for microphone access on this step; a refusal still records the video, without sound. Default false."
+                            },
+                            "condition_aspects": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 40
+                              },
+                              "minItems": 1,
+                              "maxItems": 6,
+                              "description": "Aspects to score on the clip. Judged once per clip over a contact sheet of its frames, like `expected_scene`; scored 0..10 with a reason each. Overrides the verification-level value."
+                            },
                             "max_duration_sec": {
                               "type": "integer",
                               "minimum": 1,
-                              "maximum": 30,
-                              "default": 30,
+                              "maximum": 60,
+                              "default": 60,
                               "description": "Maximum length of each clip, in seconds."
                             }
                           },
@@ -4075,6 +4471,13 @@
                     "maxLength": 254,
                     "format": "email",
                     "description": "Email that receives each result. Inherited by every verification from this template."
+                  },
+                  "report_language": {
+                    "type": "string",
+                    "enum": [
+                      "es",
+                      "en"
+                    ]
                   },
                   "notify_subject_template": {
                     "type": "string",
@@ -4847,11 +5250,39 @@
                               "default": 1,
                               "description": "Maximum clips. Default 1."
                             },
+                            "expected_object": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 200,
+                              "description": "What the clip must show. Every sampled frame is checked against it and the clip reads as object match / no match by persistence."
+                            },
+                            "expected_scene": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 200,
+                              "description": "What the clip as a whole must show, in order (\"a walk around the car with the hood open, ending on the engine bay\"). Judged once per clip over a contact sheet of its frames; the clip reads as scene match / no match with the reason. Absent: no scene check."
+                            },
+                            "audio": {
+                              "type": "boolean",
+                              "default": false,
+                              "description": "Record the microphone with the clip. The person is asked for microphone access on this step; a refusal still records the video, without sound. Default false."
+                            },
+                            "condition_aspects": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 40
+                              },
+                              "minItems": 1,
+                              "maxItems": 6,
+                              "description": "Aspects to score on the clip. Judged once per clip over a contact sheet of its frames, like `expected_scene`; scored 0..10 with a reason each. Overrides the verification-level value."
+                            },
                             "max_duration_sec": {
                               "type": "integer",
                               "minimum": 1,
-                              "maximum": 30,
-                              "default": 30,
+                              "maximum": 60,
+                              "default": 60,
                               "description": "Maximum length of each clip, in seconds."
                             }
                           },
@@ -5199,6 +5630,16 @@
                     ],
                     "maxLength": 254,
                     "format": "email"
+                  },
+                  "report_language": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "enum": [
+                      "es",
+                      "en"
+                    ]
                   },
                   "notify_subject_template": {
                     "type": [
