@@ -23,6 +23,19 @@ pending → partially_captured → completed | expired | failed
 | --- | --- |
 | `rial` | `true` when no check tripped. **Branch on this.** |
 | `signals` | The checks that tripped: `screen_detected`, `ai_detected`, `found_online`. Empty when `rial` is `true`. |
+| `unavailable` | Checks that could not be completed: `screen`, `ai`, `reverse`, `context`, `depth`. Only present when not empty. |
+
+### When a check could not be completed
+
+If a detector never answers, even after every retry, the verification still completes, but `rial` is `false` and the check is listed under `unavailable`:
+
+```json
+{
+  "verdict": { "rial": false, "signals": [], "unavailable": ["screen"] }
+}
+```
+
+It means the photo was not fully checked, not that something tripped. Audits list it the same way.
 
 ## Which checks run
 
