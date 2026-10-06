@@ -3,7 +3,7 @@ title: "Credits"
 description: "Let your agent buy photo credits on its own, under a monthly cap."
 ---
 
-Every photo past your plan's included ones costs **US$0.20** from your credit balance. An agent can top that balance up by itself, with a card a person saved once and a monthly cap that person agreed to. While you hold bought credits, Pro features (condition, expected object) are on.
+Every photo past your plan's included ones costs **US\$0.20** from your credit balance. An agent can top that balance up by itself, with a card a person saved once and a monthly cap that person agreed to. While you hold bought credits, Pro features (condition, expected object) are on.
 
 ## Save a card, once
 
@@ -27,7 +27,7 @@ const purchase = await rial.credits.topUp(250, { idempotencyKey: 'claims-run-202
 purchase.status; // "succeeded"
 ```
 
-Packs are 50, 250 or 1000 photos (US$10, US$50, US$200). The card is charged with nobody present and the credits land at once.
+Packs are 50, 250 or 1000 photos (US\$10, US\$50, US\$200). The card is charged with nobody present and the credits land at once.
 
 Send the same `idempotencyKey` to retry the same purchase: it is charged at most once, even days later. A different pack under a used key is refused (`409 idempotency_key_reused`). Leave the key out and the SDK makes one per call.
 
