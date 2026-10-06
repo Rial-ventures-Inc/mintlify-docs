@@ -1,0 +1,59 @@
+---
+title: "Credits"
+description: "Let your agent buy photo credits on its own, under a monthly cap."
+---
+
+Every photo past your plan's included ones costs **US\$0.20** from your credit balance. An agent can top that balance up by itself, with a card a person saved once and a monthly cap that person agreed to. Through the API every feature (condition, expected object) works on any plan; credits only pay for the photos.
+
+## Save a card, once
+
+A person has to do this step: the agent asks for a link and hands it over.
+
+```ts
+import { createRial } from '@rial/sdk';
+
+const rial = createRial({ apiKey: process.env.RIAL_API_KEY });
+
+const { url } = await rial.credits.paymentMethodLink(5000); // cap: US$50.00 a month
+// send `url` to a person
+```
+
+The Stripe page shows the cap above the button: saving the card is agreeing to it. Nothing changes until they finish, and the link expires after an hour. To change the card or the cap, ask for a new link; the API can't raise the cap on its own.
+
+## Buy a pack
+
+```ts
+const purchase = await rial.credits.topUp(250, { idempotencyKey: 'claims-run-2026-10-06' });
+purchase.status; // "succeeded"
+```
+
+Packs are 50, 250 or 1000 photos (US\$10, US\$50, US\$200). The card is charged with nobody present and the credits land at once.
+
+Send the same `idempotencyKey` to retry the same purchase: it is charged at most once, even days later. A different pack under a used key is refused (`409 idempotency_key_reused`). Leave the key out and the SDK makes one per call.
+
+## Check the balance
+
+```ts
+const credits = await rial.credits.get();
+credits.photosAvailable;  // 250
+credits.monthSpentCents;  // 5000
+credits.monthlyCapCents;  // 5000
+```
+
+## When a purchase is refused
+
+Nothing is charged in any of these.
+
+| Code | Status | What to do |
+| --- | --- | --- |
+| `payment_method_required` | 409 | No card saved, or it was removed. Ask a person to save one. |
+| `spend_cap_exceeded` | 402 | The month's cap is reached. Wait for next month or have a person save the card with a higher cap. |
+| `card_declined` | 402 | Use another card. |
+| `card_requires_authentication` | 402 | The bank wants the cardholder. A person saves the card again. |
+| `idempotency_key_reused` | 409 | Use a new key for a new purchase. |
+
+If Stripe doesn't answer, you get `503 payment_status_unknown` with the `idempotency_key` to retry with: the card may have been charged, and retrying with that key never charges twice.
+
+## From an AI agent
+
+The [Rial MCP server](/mcp-server) exposes the same flow as tools: `get_credit_balance`, `buy_credits` and `setup_credit_payment_method`. `buy_credits` is marked as spending, so clients like ChatGPT ask before charging.
