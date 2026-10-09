@@ -138,7 +138,6 @@
   },
   "seo": {
     "metatags": {
-      "og:title": "Rial developer documentation",
       "og:description": "Verify that a photo is real. API, CLI and native SDKs."
     }
   },
