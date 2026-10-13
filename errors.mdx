@@ -40,7 +40,7 @@ try {
 | --- | --- | --- | --- |
 | `invalid_request` | 400 | A field is wrong or missing. | Fix the fields listed in `fields`. |
 | `invalid_json` | 400 | The body is not valid JSON. | Send `Content-Type: application/json` and a JSON body. |
-| `unauthorized` | 401 | Missing or invalid API key. | Use an `rk_secret_…` key for this environment. Staging keys don't work on `api.rial.io`. |
+| `unauthorized` | 401 | Missing or invalid API key. | Use an `rk_secret_…` key for this environment. Sandbox keys don't work on `api.rial.io`, nor production keys on [sandbox](/sandbox). |
 | `forbidden` | 403 | This key or account can't do that. | Check the key's account, or ask an admin. |
 | `not_found` | 404 | No such id in this account. | Ids are per account and per environment. |
 | `conflict` | 409 | Already exists or already changed. | Read the resource back and retry from its current state. |

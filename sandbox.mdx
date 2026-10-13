@@ -1,0 +1,53 @@
+---
+title: "Sandbox"
+description: "Build and test your integration before going live."
+"og:title": "Sandbox environment | Rial API"
+---
+
+If the Rial team set up a sandbox for you, build against it first. It is a separate copy of Rial: its own dashboard, its own API keys and its own data. Nothing you do there reaches production.
+
+| | Sandbox | Production |
+| --- | --- | --- |
+| API | `https://sandbox.api.rial.io` | `https://api.rial.io` |
+| Dashboard | [sandbox.app.rial.io](https://sandbox.app.rial.io) | [app.rial.io](https://app.rial.io) |
+| Capture links | `https://sandbox.verify.rial.io/…` | `https://verify.rial.io/…` |
+
+## Keys
+
+Log in to the sandbox dashboard and create a key in **Settings → API**. A sandbox key only works on `sandbox.api.rial.io`, and a production key only on `api.rial.io`.
+
+## Point your code at it
+
+Same endpoints, same payloads. Change the base URL and the key.
+
+<CodeGroup>
+
+```ts Node SDK
+import { createRial } from '@rial/sdk';
+
+const rial = createRial({
+  apiKey: process.env.RIAL_API_KEY,
+  baseUrl: 'https://sandbox.api.rial.io',
+});
+```
+
+```bash cURL
+curl https://sandbox.api.rial.io/v1/verifications \
+  -H "Authorization: Bearer $RIAL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "max_captures": 1 }'
+```
+
+```bash CLI
+export RIAL_API_URL=https://sandbox.api.rial.io
+export RIAL_API_KEY=rk_secret_…
+rial list
+```
+
+</CodeGroup>
+
+## Going live
+
+Create a key in the [production dashboard](https://app.rial.io), swap it in and drop the base URL (the SDK defaults to `https://api.rial.io`). Templates and databases don't carry over: create them again in production.
+
+No sandbox yet? Write to developers@rial.io.
