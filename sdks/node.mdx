@@ -224,7 +224,7 @@ result.objectMatch?.status;   // 'match'
 result.condition?.score;      // 7.5
 ```
 
-`audits.run` uploads, starts the analysis and waits. `audits.create` does the first two and returns at once; read the result later with `verifications.get` or a webhook.
+`audits.run` uploads, starts the analysis and waits. `audits.create` does the first two and returns at once; read the result later with `verifications.get` or a webhook. Add `checks: ['ai']` to run AI detection alone — see [Only AI detection](/audits#only-ai-detection).
 
 ## Errors
 
@@ -272,4 +272,4 @@ try {
 | `audits.create(input)` | `POST /v1/verifications` in audit mode, then the upload |
 | `audits.run(input, options)` | `audits.create`, then `verifications.waitFor` |
 
-Inputs and results use camelCase and are typed from the same OpenAPI document as the [API reference](/api-reference), so they never drift. Exported types: `Verification`, `LiveVerdict`, `AuditVerdict`, `Step`, `LinkTemplate`, `ImportJob`, `Database`, `VerificationEvent`, `PublicVerification`, `WebhookEvent`, `WebhookVerdict`, and the inputs `CreateVerificationInput`, `PublishTemplateInput`, `MintFromTemplateInput`, `ListVerificationsFilters`, `AuditInput`.
+Inputs and results use camelCase and are typed from the same OpenAPI document as the [API reference](/api-reference), so they never drift. Exported types: `Verification`, `LiveVerdict`, `AuditVerdict`, `Step`, `LinkTemplate`, `ImportJob`, `Database`, `VerificationEvent`, `PublicVerification`, `WebhookEvent`, `WebhookVerdict`, and the inputs `CreateVerificationInput`, `PublishTemplateInput`, `MintFromTemplateInput`, `ListVerificationsFilters`, `AuditInput`, `AuditCheck`.

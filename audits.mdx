@@ -6,7 +6,7 @@ description: "Check a photo you already have."
 
 A verification certifies a photo taken live, right now, through a link. An **audit** checks a file that already exists: a photo someone emailed you, one sitting in your system, one you downloaded. No link, no camera, no person on the other end.
 
-Rial runs three checks on every audited file, always: is it a photo of a screen, does it look AI-generated, and is it already online. Describe the photo (`expectedObject`, `context`) and it also checks that it shows that; send `conditionAspects` and it scores the condition. You don't pick the checks. Because no device stood behind the photo, there is no `rial: true/false`; you get the checks that tripped and decide.
+By default Rial runs three checks on every audited file: is it a photo of a screen, does it look AI-generated, and is it already online. Describe the photo (`expectedObject`, `context`) and it also checks that it shows that; send `conditionAspects` and it scores the condition. To run fewer of the three, see [Only AI detection](#only-ai-detection). Because no device stood behind the photo, there is no `rial: true/false`; you get the checks that tripped and decide.
 
 ## One call
 
@@ -39,7 +39,7 @@ const result = await rial.audits.run({
 }
 ```
 
-- `verdict.signals` lists the checks that tripped. Empty means all three ran and nothing tripped. `screen_detected` is a photo of a screen, `ai_detected` an AI-generated image, `found_online` an image already published. Every check runs; one tripping never stops the others, so two can appear together.
+- `verdict.signals` lists the checks that tripped. Empty means every check that ran came back clean. `screen_detected` is a photo of a screen, `ai_detected` an AI-generated image, `found_online` an image already published. One check tripping never stops the others, so two can appear together.
 - `objectMatch` says whether the photo shows your `expectedObject`.
 - `condition` scores each aspect 0 to 10 with a one-line reason.
 
@@ -59,6 +59,23 @@ const started = await rial.audits.create({
 started.id; // vfy_…
 ```
 
+## Only AI detection
+
+Pass `checks` to run only the checks you name. `checks: ['ai']` answers one question, does it look AI-generated, and skips the screen and found-online checks.
+
+```ts
+const result = await rial.audits.run({
+  file: await readFile('receipt-4471.jpg'),
+  contentType: 'image/jpeg',
+  checks: ['ai'],
+  metadata: { orderId: 'ORD-4471' },
+});
+
+result.verdict?.signals; // [] or [{ type: 'ai_detected', confidence: 0.93 }]
+```
+
+`checks` takes any of `'screen'`, `'ai'` and `'reverse'` (found online). Leave it out and all three run.
+
 ## Input
 
 | Field | Required | What it is |
@@ -68,6 +85,7 @@ started.id; // vfy_…
 | `expectedObject` | no | What must appear in the photo. Turns on the object check. |
 | `conditionAspects` | no | Aspects to score, up to 6. Turns on the condition check. |
 | `context` | no | `{ kind, summary }` describing what the photo is supposed to show. Turns on the context check. |
+| `checks` | no | Run only these: `'screen'`, `'ai'`, `'reverse'`. Default: all three. |
 | `webhookUrl` | no | HTTPS URL that receives the result. |
 | `metadata` | no | Your own keys, returned with the result and in webhooks. |
 
