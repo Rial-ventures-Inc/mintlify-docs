@@ -24,6 +24,10 @@
       "description": "Create, fetch, list, and finalize verifications. The core of the API — every tenant integration starts here."
     },
     {
+      "name": "Audits",
+      "description": "Check a photo you already have. `POST /v1/audits/sync` answers AI detection in the same call; every other audit is a verification in `audit` mode."
+    },
+    {
       "name": "Templates",
       "description": "Publish, update, revoke and inspect link templates — the reusable capture links behind `/l/{token}` (a compact JWT carrying the org and template slugs; the legacy `/l/{org}/{slug}` keeps resolving). Callable with a secret key; each publish snapshots a versioned capture spec (GET-83)."
     },
@@ -2854,6 +2858,416 @@
     "parameters": {}
   },
   "paths": {
+    "/v1/audits/sync": {
+      "post": {
+        "tags": [
+          "Audits"
+        ],
+        "summary": "Audit a photo for AI generation in one call",
+        "description": "Check a photo for AI generation and get the verdict in the same response. Up to 4 MB; 202 means it finishes in the background.",
+        "security": [
+          {
+            "bearerApiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "description": "The photo: image/jpeg, image/png, image/webp, image/heic or image/heif. Up to 4 MB; larger photos go through the regular audit flow.",
+                    "format": "binary"
+                  },
+                  "checks": {
+                    "type": "string",
+                    "enum": [
+                      "ai"
+                    ],
+                    "description": "Which checks to run. Only `ai` (AI-generated) is answered in one call. Default `ai`."
+                  },
+                  "metadata": {
+                    "type": "string",
+                    "description": "Your own keys as a JSON object string, returned with the result and in webhooks. Same rules as `metadata` on `POST /v1/verifications`.",
+                    "example": "{\"orderId\":\"ORD-4471\"}"
+                  },
+                  "webhook_url": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "HTTPS URL that receives the result. Same rules as on `POST /v1/verifications`."
+                  }
+                },
+                "required": [
+                  "image"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The analysis finished. `verdict` is set.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeveloperVerification"
+                },
+                "example": {
+                  "id": "vfy_01HXYZABCDEFGHJKMNPQRSTVWX",
+                  "status": "completed",
+                  "capture_url": "https://verify.rial.io/v/vfy_01HXYZABCDEFGHJKMNPQRSTVWX",
+                  "created_at": "2026-10-14T19:06:57.718Z",
+                  "expires_at": "2026-10-14T20:06:57.718Z",
+                  "captures_count": 1,
+                  "verdict": {
+                    "rial": false,
+                    "signals": [
+                      {
+                        "type": "ai_detected",
+                        "confidence": 0.93
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Stored; the analysis finishes in the background. Poll `GET /v1/verifications/{id}` (the SDK does).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeveloperVerification"
+                },
+                "example": {
+                  "id": "vfy_01HXYZABCDEFGHJKMNPQRSTVWX",
+                  "status": "partially_captured",
+                  "capture_url": "https://verify.rial.io/v/vfy_01HXYZABCDEFGHJKMNPQRSTVWX",
+                  "created_at": "2026-10-14T19:06:57.718Z",
+                  "expires_at": "2026-10-14T20:06:57.718Z",
+                  "captures_count": 1
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`invalid_multipart` (the body is not well-formed multipart), `missing_image` (no `image` file) or `invalid_metadata` (`metadata` is not a JSON object string). An invalid `webhook_url` answers `invalid_request`, as on `POST /v1/verifications`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                },
+                "example": {
+                  "error": {
+                    "code": "missing_image",
+                    "message": "image is required"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid secret key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                },
+                "example": {
+                  "error": {
+                    "code": "unauthorized",
+                    "message": "Missing or invalid API key"
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "`plan_limit_reached`, `insufficient_credits` or `monthly_verification_limit_reached`, as on `POST /v1/verifications`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                },
+                "example": {
+                  "error": {
+                    "code": "plan_limit_reached",
+                    "message": "Plan limit reached"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "`image_too_large_for_sync`: the photo is over 4 MB. Use the regular audit flow.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                },
+                "example": {
+                  "error": {
+                    "code": "image_too_large_for_sync",
+                    "message": "Image over 4 MB"
+                  }
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "`unsupported_media_type`: the body is not multipart/form-data. `unsupported_image_type`: the image is not JPEG, PNG, WebP, HEIC or HEIF.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                },
+                "example": {
+                  "error": {
+                    "code": "unsupported_image_type",
+                    "message": "Unsupported image type"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "`checks_not_supported`: only `ai` is answered in one call.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                },
+                "example": {
+                  "error": {
+                    "code": "checks_not_supported",
+                    "message": "Only checks=ai is supported here"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests, or more than the audits per second your account allows. Wait `Retry-After` seconds.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                },
+                "example": {
+                  "error": {
+                    "code": "too_many_requests",
+                    "message": "Rate limit exceeded"
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Storage was unavailable. Retry.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                },
+                "example": {
+                  "error": {
+                    "code": "storage_unavailable",
+                    "message": "Try again"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/me/credits": {
       "get": {
         "tags": [
