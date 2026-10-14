@@ -61,7 +61,7 @@ started.id; // vfy_…
 
 ## Only AI detection
 
-Pass `checks` to run only the checks you name. `checks: ['ai']` answers one question, does it look AI-generated, and skips the screen and found-online checks.
+Pass `checks` to run only the checks you name. `checks: ['ai']` will check for AI generation, skipping screen detection and found online.
 
 ```ts
 const result = await rial.audits.run({
