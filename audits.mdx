@@ -80,19 +80,33 @@ Available today in the [sandbox](/sandbox), and in production with the next rele
 
 ## AI only, in one call
 
-With `@rial/sdk` 0.5.0, `audits.run` with `checks: ['ai']` and a photo up to 4 MB is answered in one call: the photo goes up and the verdict comes back in the same response. The code above does not change.
-
-Without the SDK:
+Send the photo and get the verdict back in the same response. Available today in the [sandbox](/sandbox), and in production with the next release.
 
 ```bash
-curl https://api.rial.io/v1/audits/sync \
+curl https://sandbox.api.rial.io/v1/audits/sync \
   -H "Authorization: Bearer $RIAL_API_KEY" \
   -F image=@receipt-4471.jpg \
   -F checks=ai \
   -F 'metadata={"orderId":"ORD-4471"}'
 ```
 
-`201` carries the verdict. `202` means the photo is stored and the analysis finishes in the background; read it with `GET /v1/verifications/{id}` (the SDK does). Photos over 4 MB, other checks, `expectedObject`, `conditionAspects` and `context` go through the regular flow.
+| Field | Required | What it is |
+| --- | --- | --- |
+| `image` | yes | The photo: JPEG, PNG, WebP, HEIC or HEIF, up to 4 MB. |
+| `checks` | no | Only `ai`. |
+| `metadata` | no | JSON object with your own keys, returned with the result and in webhooks. |
+| `webhook_url` | no | HTTPS URL that also receives the result. |
+
+| Status | What it means |
+| --- | --- |
+| `201` | The verdict is in the body, same shape as `GET /v1/verifications/{id}`. |
+| `202` | The photo is stored and the analysis finishes in the background. Read it with `GET /v1/verifications/{id}` or wait for the webhook. |
+| `413` `image_too_large_for_sync` | Over 4 MB. Use the regular flow. |
+| `415` | Not `multipart/form-data`, or not a supported image. |
+| `422` `checks_not_supported` | Asked for other checks. Use the regular flow. |
+| `429` `too_many_requests` | Over 8 audits per second in the sandbox. Wait `Retry-After` seconds. |
+
+Other checks, `expectedObject`, `conditionAspects` and `context` go through the regular flow above.
 
 ## Input
 
