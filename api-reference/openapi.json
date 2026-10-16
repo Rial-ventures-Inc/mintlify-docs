@@ -24,6 +24,10 @@
       "description": "Create, fetch, list, and finalize verifications. The core of the API — every tenant integration starts here."
     },
     {
+      "name": "Audits",
+      "description": "Check a photo you already have. `POST /v1/audits/sync` answers AI detection in the same call; every other audit is a verification in `audit` mode."
+    },
+    {
       "name": "Templates",
       "description": "Publish, update, revoke and inspect link templates — the reusable capture links behind `/l/{token}` (a compact JWT carrying the org and template slugs; the legacy `/l/{org}/{slug}` keeps resolving). Callable with a secret key; each publish snapshots a versioned capture spec (GET-83)."
     },
@@ -33,7 +37,7 @@
     },
     {
       "name": "Credits",
-      "description": "Prepaid photo credits at US$0.20 a photo, bought in packs by an agent with the card a person saved, under a monthly spend cap. While credits remain, Pro features are on. Callable with a dashboard session or secret API key."
+      "description": "Prepaid photo credits at US$0.20 a photo, bought in packs by an agent with the card a person saved, under a monthly spend cap. Through the API every feature is on in any plan; credits pay for the photos. Callable with a dashboard session or secret API key."
     }
   ],
   "components": {
@@ -1045,6 +1049,933 @@
         ],
         "description": "A verification as your API key sees it. `verdict` appears once analysis finished; `object_match`, `location_match` and `condition` appear when you asked for them and the check ran. Your `metadata` is not echoed back: keep the `id`."
       },
+      "AuditVerification": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^vfy_[0-9A-HJKMNP-TV-Z]{26}$"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "partially_captured",
+              "completed",
+              "expired",
+              "failed",
+              "abandoned"
+            ],
+            "description": "Lifecycle state. `pending` → first capture flips to `partially_captured` → analysis sets the verdict and transitions to `completed`. Terminal: `completed`, `expired`, `failed`. `abandoned` is a side-branch off `pending`/`partially_captured`, reported by the capture screen via `POST /v1/verifications/:token/progress` when the end user leaves before finishing — NOT terminal: a later capture resurrects the row to `partially_captured` like any other."
+          },
+          "capture_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "captures_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "verdict": {
+            "type": "object",
+            "properties": {
+              "reverse_search": {
+                "type": "object",
+                "properties": {
+                  "state": {
+                    "type": "string",
+                    "enum": [
+                      "pending",
+                      "review",
+                      "no_match",
+                      "inconclusive",
+                      "expired"
+                    ]
+                  },
+                  "sources": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uri"
+                    }
+                  }
+                },
+                "required": [
+                  "state",
+                  "sources"
+                ],
+                "description": "Secondary reverse-search state. Similarity candidates require review; they are not confirmed fraud findings."
+              },
+              "rial": {
+                "type": "boolean",
+                "description": "Rial/no Rial result of the audit, matching the dashboard."
+              },
+              "signals": {
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "screen_detected"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "ai_detected"
+                          ]
+                        },
+                        "confidence": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
+                      },
+                      "required": [
+                        "type"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "found_online"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type"
+                      ]
+                    }
+                  ],
+                  "description": "A check that tripped on an audited file."
+                }
+              },
+              "unavailable": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "screen",
+                    "ai",
+                    "reverse",
+                    "context"
+                  ]
+                },
+                "minItems": 1,
+                "description": "Checks that could not be completed because the detector never answered after every retry: `screen` (photo of a screen), `ai` (AI-generated), `reverse` (already online), `context`, `depth`. Present only when non-empty; `rial` is then false — the photo was not fully checked, which is not the same as a finding."
+              }
+            },
+            "required": [
+              "rial",
+              "signals"
+            ],
+            "description": "Verdict of an audit (`mode: \"audit\"`, a file that already existed). Includes the Rial/no Rial result and the checks that tripped. This is an analysis result, not proof of live capture."
+          },
+          "location": {
+            "type": "object",
+            "properties": {
+              "lat": {
+                "type": "number"
+              },
+              "lng": {
+                "type": "number"
+              },
+              "accuracy_m": {
+                "type": "number",
+                "minimum": 0
+              },
+              "derived_from": {
+                "type": "string",
+                "enum": [
+                  "exif",
+                  "live",
+                  "last_known_session",
+                  "last_known_system",
+                  "last_known_persisted"
+                ]
+              },
+              "age_ms": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "place": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "lat",
+              "lng",
+              "accuracy_m"
+            ],
+            "description": "Where the photo was taken, from the device. Absent for uploaded files and when the device reported no fix."
+          },
+          "location_match": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "verified",
+                  "no_match",
+                  "ungeocoded",
+                  "rejected",
+                  "not_applicable"
+                ]
+              },
+              "expected_location": {
+                "type": "string"
+              },
+              "observed_location": {
+                "type": "string"
+              },
+              "expected_point": {
+                "type": "object",
+                "properties": {
+                  "lat": {
+                    "type": "number"
+                  },
+                  "lng": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "lat",
+                  "lng"
+                ]
+              },
+              "observed_point": {
+                "type": "object",
+                "properties": {
+                  "lat": {
+                    "type": "number"
+                  },
+                  "lng": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "lat",
+                  "lng"
+                ]
+              },
+              "distance_m": {
+                "type": "number",
+                "minimum": 0
+              },
+              "threshold_m": {
+                "type": "number",
+                "minimum": 0
+              },
+              "gps_accuracy_m": {
+                "type": "number",
+                "minimum": 0
+              },
+              "geocode_ref": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "status"
+            ],
+            "description": "Whether the photo was taken at `expected_location`. `verified` within GPS tolerance; `no_match` somewhere else; `ungeocoded` when the address or the fix could not be resolved; `rejected` when the device reported a mock location."
+          },
+          "object_match": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "match",
+                  "mismatch",
+                  "inconclusive"
+                ]
+              },
+              "expected_object": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "status"
+            ],
+            "description": "Object-check result. Present when an object check was requested globally or on an image step. With step-only configuration the status is the worst step result and expected_object is omitted. Independent of the fraud verdict."
+          },
+          "object_matches": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "match",
+                    "mismatch",
+                    "inconclusive"
+                  ]
+                },
+                "expected_object": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status",
+                "expected_object"
+              ],
+              "description": "Object-check result for one image step, including its expected object."
+            },
+            "description": "Object-check results keyed by image step. Missing capture verdicts yield inconclusive; otherwise each value is the worst context result for the step, ignoring not_applicable when live evidence exists."
+          },
+          "condition": {
+            "type": "object",
+            "properties": {
+              "score": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 10
+              },
+              "label": {
+                "type": "string",
+                "enum": [
+                  "good",
+                  "fair",
+                  "poor"
+                ]
+              },
+              "aspects": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "score": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 10
+                    },
+                    "reasoning": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "score",
+                    "reasoning"
+                  ],
+                  "description": "One scored aspect of the condition assessment. `name` echoes the free-form tenant-defined aspect from `condition_aspects` verbatim — any language, any domain, no fixed vocabulary. `score` is 0..10 with one decimal; `reasoning` is a one-or-two-sentence visual justification."
+                }
+              },
+              "provenance": {
+                "type": "object",
+                "properties": {
+                  "model": {
+                    "type": "string"
+                  },
+                  "prompt": {
+                    "type": "string"
+                  },
+                  "instructions_sha256": {
+                    "type": "string",
+                    "minLength": 64,
+                    "maxLength": 64
+                  }
+                },
+                "required": [
+                  "model",
+                  "prompt"
+                ],
+                "description": "What produced this assessment: the model, the prompt (`id@version`) and, when your organization's condition instructions applied, their SHA-256 — so a result stays tied to the guidance and model of its day. Absent on assessments written before this field existed."
+              },
+              "steps": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "score": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 10
+                    },
+                    "label": {
+                      "type": "string",
+                      "enum": [
+                        "good",
+                        "fair",
+                        "poor"
+                      ]
+                    },
+                    "aspects": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "score": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 10
+                          },
+                          "reasoning": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "score",
+                          "reasoning"
+                        ],
+                        "description": "One scored aspect of the condition assessment. `name` echoes the free-form tenant-defined aspect from `condition_aspects` verbatim — any language, any domain, no fixed vocabulary. `score` is 0..10 with one decimal; `reasoning` is a one-or-two-sentence visual justification."
+                      }
+                    },
+                    "provenance": {
+                      "type": "object",
+                      "properties": {
+                        "model": {
+                          "type": "string"
+                        },
+                        "prompt": {
+                          "type": "string"
+                        },
+                        "instructions_sha256": {
+                          "type": "string",
+                          "minLength": 64,
+                          "maxLength": 64
+                        }
+                      },
+                      "required": [
+                        "model",
+                        "prompt"
+                      ],
+                      "description": "What produced this assessment: the model, the prompt (`id@version`) and, when your organization's condition instructions applied, their SHA-256 — so a result stays tied to the guidance and model of its day. Absent on assessments written before this field existed."
+                    }
+                  },
+                  "required": [
+                    "score",
+                    "label",
+                    "aspects"
+                  ],
+                  "description": "Condition assessment. Present only when the verification was created with `condition_aspects` — the free-form tenant-defined aspect names (any language, any domain). `score` is the one-decimal average of aspect scores; `label` buckets it (>=7.5 good, >=5 fair, else poor). Independent of the fraud verdict."
+                },
+                "description": "Condition results keyed by photo step. Each uses only that step’s photos and its rubric, falling back to the shared rubric. The aggregate averages all assessed aspect scores."
+              }
+            },
+            "required": [
+              "score",
+              "label",
+              "aspects"
+            ],
+            "description": "Condition assessment. Present only when the verification was created with `condition_aspects` — the free-form tenant-defined aspect names (any language, any domain). `score` is the one-decimal average of aspect scores; `label` buckets it (>=7.5 good, >=5 fair, else poor). Independent of the fraud verdict."
+          },
+          "video_analysis": {
+            "type": "object",
+            "properties": {
+              "capture_id": {
+                "type": "string"
+              },
+              "frames_extracted": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "frames_analyzed": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "scene": {
+                "type": "object",
+                "properties": {
+                  "verdict": {
+                    "type": "string",
+                    "enum": [
+                      "match",
+                      "mismatch",
+                      "inconclusive"
+                    ]
+                  },
+                  "confidence": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "reasoning": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "verdict",
+                  "confidence",
+                  "reasoning"
+                ],
+                "description": "Whether the clip as a whole shows what the video step's `expected_scene` asked for, judged once over a contact sheet of its frames, with the reason. Absent when the step declared no scene or the check did not run."
+              },
+              "condition": {
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 10
+                  },
+                  "label": {
+                    "type": "string",
+                    "enum": [
+                      "good",
+                      "fair",
+                      "poor"
+                    ]
+                  },
+                  "aspects": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "score": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 10
+                        },
+                        "reasoning": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "score",
+                        "reasoning"
+                      ],
+                      "description": "One scored aspect of the condition assessment. `name` echoes the free-form tenant-defined aspect from `condition_aspects` verbatim — any language, any domain, no fixed vocabulary. `score` is 0..10 with one decimal; `reasoning` is a one-or-two-sentence visual justification."
+                    }
+                  },
+                  "provenance": {
+                    "type": "object",
+                    "properties": {
+                      "model": {
+                        "type": "string"
+                      },
+                      "prompt": {
+                        "type": "string"
+                      },
+                      "instructions_sha256": {
+                        "type": "string",
+                        "minLength": 64,
+                        "maxLength": 64
+                      }
+                    },
+                    "required": [
+                      "model",
+                      "prompt"
+                    ],
+                    "description": "What produced this assessment: the model, the prompt (`id@version`) and, when your organization's condition instructions applied, their SHA-256 — so a result stays tied to the guidance and model of its day. Absent on assessments written before this field existed."
+                  }
+                },
+                "required": [
+                  "score",
+                  "label",
+                  "aspects"
+                ],
+                "description": "The video step's `condition_aspects` scored over a contact sheet of the clip — the same 0..10 rubric and labels a photo step gets, read across the whole recording. Absent when the step declared no aspects or the check did not run."
+              },
+              "signals": {
+                "type": "object",
+                "properties": {
+                  "screen": {
+                    "type": "object",
+                    "properties": {
+                      "detected": {
+                        "type": "boolean"
+                      },
+                      "frames_evaluated": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "flagged_ratio": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "longest_run_ms": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "flagged_at_ms": {
+                        "type": "array",
+                        "items": {
+                          "type": "integer",
+                          "minimum": 0
+                        }
+                      }
+                    },
+                    "required": [
+                      "detected",
+                      "frames_evaluated",
+                      "flagged_ratio",
+                      "longest_run_ms",
+                      "flagged_at_ms"
+                    ],
+                    "description": "How one check behaved across the sampled frames. `detected` is true when it tripped on at least half of `frames_evaluated` or on three consecutive frames; isolated trips are listed in `flagged_at_ms` without deciding."
+                  },
+                  "ai": {
+                    "type": "object",
+                    "properties": {
+                      "detected": {
+                        "type": "boolean"
+                      },
+                      "frames_evaluated": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "flagged_ratio": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "longest_run_ms": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "flagged_at_ms": {
+                        "type": "array",
+                        "items": {
+                          "type": "integer",
+                          "minimum": 0
+                        }
+                      }
+                    },
+                    "required": [
+                      "detected",
+                      "frames_evaluated",
+                      "flagged_ratio",
+                      "longest_run_ms",
+                      "flagged_at_ms"
+                    ],
+                    "description": "How one check behaved across the sampled frames. `detected` is true when it tripped on at least half of `frames_evaluated` or on three consecutive frames; isolated trips are listed in `flagged_at_ms` without deciding."
+                  },
+                  "reverse": {
+                    "type": "object",
+                    "properties": {
+                      "detected": {
+                        "type": "boolean"
+                      },
+                      "frames_evaluated": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "flagged_ratio": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "longest_run_ms": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "flagged_at_ms": {
+                        "type": "array",
+                        "items": {
+                          "type": "integer",
+                          "minimum": 0
+                        }
+                      }
+                    },
+                    "required": [
+                      "detected",
+                      "frames_evaluated",
+                      "flagged_ratio",
+                      "longest_run_ms",
+                      "flagged_at_ms"
+                    ],
+                    "description": "How one check behaved across the sampled frames. `detected` is true when it tripped on at least half of `frames_evaluated` or on three consecutive frames; isolated trips are listed in `flagged_at_ms` without deciding."
+                  },
+                  "context": {
+                    "type": "object",
+                    "properties": {
+                      "detected": {
+                        "type": "boolean"
+                      },
+                      "frames_evaluated": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "flagged_ratio": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "longest_run_ms": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "flagged_at_ms": {
+                        "type": "array",
+                        "items": {
+                          "type": "integer",
+                          "minimum": 0
+                        }
+                      }
+                    },
+                    "required": [
+                      "detected",
+                      "frames_evaluated",
+                      "flagged_ratio",
+                      "longest_run_ms",
+                      "flagged_at_ms"
+                    ],
+                    "description": "How one check behaved across the sampled frames. `detected` is true when it tripped on at least half of `frames_evaluated` or on three consecutive frames; isolated trips are listed in `flagged_at_ms` without deciding."
+                  }
+                },
+                "description": "One entry per check that ran on the clip; a missing entry was not evaluated, never clean."
+              },
+              "analyzed_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "capture_id",
+              "frames_extracted",
+              "frames_analyzed",
+              "signals",
+              "analyzed_at"
+            ],
+            "description": "Analysis of a video-step clip, sampled at one frame per second and run through the same checks a photo gets. Written asynchronously after capture — poll or use webhooks; absent until the worker has run."
+          },
+          "ocr_primary": {
+            "type": "string"
+          },
+          "similar_photo": {
+            "type": "object",
+            "properties": {
+              "verification_id": {
+                "type": "string"
+              },
+              "capture_id": {
+                "type": "string"
+              },
+              "distance": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 64
+              },
+              "method": {
+                "type": "string",
+                "enum": [
+                  "phash",
+                  "embedding"
+                ]
+              },
+              "cosine": {
+                "type": "number",
+                "minimum": -1,
+                "maximum": 1
+              },
+              "inliers": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "verification_id",
+              "capture_id",
+              "distance"
+            ],
+            "description": "An earlier verification of yours whose photo matches this one. `method: \"phash\"`: the perceptual hashes are within threshold (Hamming `distance` 0–64; 0 is bit-identical) — a re-upload. `method: \"embedding\"`: the hashes differ but the photos are the same scene by embedding (`cosine`) and a geometric check confirmed it (`inliers`) — a screenshot or a crop. Present only when a match was found. It does not change `rial`: a legitimate re-submission and a recycled photo look the same — your reviewer decides."
+          },
+          "answers": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "values": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "address": {
+                  "type": "object",
+                  "properties": {
+                    "street": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200
+                    },
+                    "number": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200
+                    },
+                    "neighborhood": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200
+                    },
+                    "complement": {
+                      "type": "string",
+                      "maxLength": 200
+                    },
+                    "city": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200
+                    },
+                    "region": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200
+                    },
+                    "postal_code": {
+                      "type": "string",
+                      "maxLength": 200
+                    }
+                  },
+                  "required": [
+                    "street",
+                    "number",
+                    "neighborhood",
+                    "city",
+                    "region",
+                    "postal_code"
+                  ],
+                  "additionalProperties": false
+                },
+                "value": {
+                  "type": "string",
+                  "maxLength": 2000
+                },
+                "answered_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "value",
+                "answered_at"
+              ],
+              "description": "One answered text step. `value` is USER-DECLARED — typed by the person capturing; unlike live-captured content, it is never sensor-attested. Potential PII: it rides the operator/developer contracts and the webhook only, never OG cards or third-party public surfaces."
+            }
+          },
+          "record_seal": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "algorithm": {
+                    "type": "string",
+                    "enum": [
+                      "sha256"
+                    ]
+                  },
+                  "hash": {
+                    "type": "string",
+                    "minLength": 64,
+                    "maxLength": 64
+                  },
+                  "covers": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "record",
+                        "answers"
+                      ]
+                    }
+                  },
+                  "answers_provenance": {
+                    "type": "string",
+                    "enum": [
+                      "user_declared"
+                    ]
+                  }
+                },
+                "required": [
+                  "algorithm",
+                  "hash",
+                  "covers",
+                  "answers_provenance"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "algorithm": {
+                    "type": "string",
+                    "enum": [
+                      "sha3-512"
+                    ]
+                  },
+                  "hash": {
+                    "type": "string",
+                    "minLength": 128,
+                    "maxLength": 128
+                  },
+                  "covers": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "record",
+                        "answers"
+                      ]
+                    }
+                  },
+                  "answers_provenance": {
+                    "type": "string",
+                    "enum": [
+                      "user_declared"
+                    ]
+                  }
+                },
+                "required": [
+                  "algorithm",
+                  "hash",
+                  "covers",
+                  "answers_provenance"
+                ]
+              }
+            ],
+            "description": "Integrity seal over the verification record including `answers`. Present only when answers exist and sealing is on (`seal !== false`). The hash proves the stored answers have not changed — it does NOT claim they are true or sensor-attested; `answers_provenance` carries that distinction explicitly."
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "capture_url",
+          "created_at",
+          "expires_at",
+          "captures_count"
+        ],
+        "description": "An audit as your API key sees it: the verification body with the audit verdict (`rial` plus the checks that tripped, each with its confidence)."
+      },
       "ErrorResponse": {
         "type": "object",
         "properties": {
@@ -1085,7 +2016,7 @@
         "required": [
           "error"
         ],
-        "description": "Uniform error envelope. `code` is the stable string SDKs branch on (`invalid_request`, `unauthorized`, `not_found`, `expired`, `step_full`, `unknown_step`, `steps_incomplete`, `already_finalized`, `too_many_requests`, `storage_unavailable`, `internal_error`, `report_not_ready`, `report_inconclusive`). `fields` is only present on `invalid_request` validation failures."
+        "description": "Uniform error envelope. `code` is the stable string SDKs branch on (`invalid_request`, `unauthorized`, `not_found`, `expired`, `step_full`, `unknown_step`, `steps_incomplete`, `already_finalized`, `too_many_requests`, `plan_limit_reached`, `insufficient_credits`, `monthly_verification_limit_reached`, `storage_unavailable`, `internal_error`, `report_not_ready`, `report_inconclusive`). `fields` is only present on `invalid_request` validation failures."
       },
       "CreateVerificationRequest": {
         "type": "object",
@@ -2228,6 +3159,61 @@
           },
           "month_spent_cents": {
             "type": "integer"
+          },
+          "plan": {
+            "type": "object",
+            "properties": {
+              "tier": {
+                "type": "string",
+                "enum": [
+                  "free",
+                  "pro",
+                  "enterprise"
+                ]
+              },
+              "photos_included": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Photos the plan includes this period; null when unlimited."
+              },
+              "photos_used": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "photos_left": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "renews_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "When the included photos renew; null when the plan includes nothing now."
+              }
+            },
+            "required": [
+              "tier",
+              "photos_included",
+              "photos_used",
+              "photos_left",
+              "renews_at"
+            ],
+            "description": "The photos the plan includes, used before any credit."
+          },
+          "photos_left": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "Photos the account can still capture: free ones left plus what the credits buy. null when the account has no capture limit."
           }
         },
         "required": [
@@ -2237,7 +3223,9 @@
           "packs",
           "payment_method",
           "monthly_cap_cents",
-          "month_spent_cents"
+          "month_spent_cents",
+          "plan",
+          "photos_left"
         ]
       },
       "CreditTopUp": {
@@ -2867,7 +3855,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Prepaid credits, the packs on sale and how much of the monthly cap is used.",
+            "description": "Free photos left in the plan, prepaid credits, the packs on sale and how much of the monthly cap is used.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3351,7 +4339,20 @@
             }
           },
           "402": {
-            "description": "plan_limit_reached or insufficient_credits: monthly plan quota and legacy credits cannot cover another image."
+            "description": "`plan_limit_reached` or `insufficient_credits`: monthly plan quota and legacy credits cannot cover another image. `monthly_verification_limit_reached`: the account already created its monthly verification allowance (1000 unless agreed otherwise) this UTC calendar month, through any channel; creation reopens when the month turns, or on the Enterprise plan. Verifications and links already created can still be completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "monthly_verification_limit_reached",
+                    "message": "Monthly limit of 1000 verifications reached. Contact Rial to move to the Enterprise plan."
+                  }
+                }
+              }
+            }
           },
           "429": {
             "description": "Tenant rate limit exceeded. Response carries `Retry-After: <seconds>` per RFC 7231.",
@@ -4361,6 +5362,416 @@
                   "error": {
                     "code": "expired",
                     "message": "Verification has expired"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/audits/sync": {
+      "post": {
+        "tags": [
+          "Audits"
+        ],
+        "summary": "Audit a photo for AI generation in one call",
+        "description": "Check a photo for AI generation and get the verdict in the same response. Up to 4 MB; 202 means it finishes in the background.",
+        "security": [
+          {
+            "bearerApiKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "description": "The photo: image/jpeg, image/png, image/webp, image/heic or image/heif. Up to 4 MB; larger photos go through the regular audit flow.",
+                    "format": "binary"
+                  },
+                  "checks": {
+                    "type": "string",
+                    "enum": [
+                      "ai"
+                    ],
+                    "description": "Which checks to run. Only `ai` (AI-generated) is answered in one call. Default `ai`."
+                  },
+                  "metadata": {
+                    "type": "string",
+                    "description": "Your own keys as a JSON object, sent as a string field; returned with the result and in webhooks. Same rules as `metadata` on `POST /v1/verifications`.",
+                    "example": "{\"orderId\":\"ORD-4471\"}"
+                  },
+                  "webhook_url": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "HTTPS URL that receives the result. Same rules as on `POST /v1/verifications`."
+                  }
+                },
+                "required": [
+                  "image"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The analysis finished. `verdict` is set.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditVerification"
+                },
+                "example": {
+                  "id": "vfy_01HXYZABCDEFGHJKMNPQRSTVWX",
+                  "status": "completed",
+                  "capture_url": "https://verify.rial.io/v/vfy_01HXYZABCDEFGHJKMNPQRSTVWX",
+                  "created_at": "2026-10-14T19:06:57.718Z",
+                  "expires_at": "2026-10-14T20:06:57.718Z",
+                  "captures_count": 1,
+                  "verdict": {
+                    "rial": false,
+                    "signals": [
+                      {
+                        "type": "ai_detected",
+                        "confidence": 0.93
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Stored; the analysis finishes in the background. Poll `GET /v1/verifications/{id}` (the SDK does).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditVerification"
+                },
+                "example": {
+                  "id": "vfy_01HXYZABCDEFGHJKMNPQRSTVWX",
+                  "status": "partially_captured",
+                  "capture_url": "https://verify.rial.io/v/vfy_01HXYZABCDEFGHJKMNPQRSTVWX",
+                  "created_at": "2026-10-14T19:06:57.718Z",
+                  "expires_at": "2026-10-14T20:06:57.718Z",
+                  "captures_count": 1
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`invalid_multipart` (the body is not well-formed multipart), `missing_image` (no `image` file) or `invalid_metadata` (`metadata` is not a JSON object). An invalid `webhook_url` answers `invalid_request`, as on `POST /v1/verifications`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                },
+                "example": {
+                  "error": {
+                    "code": "missing_image",
+                    "message": "image is required"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid secret key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                },
+                "example": {
+                  "error": {
+                    "code": "unauthorized",
+                    "message": "Missing or invalid API key"
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "`plan_limit_reached`, `insufficient_credits` or `monthly_verification_limit_reached`, as on `POST /v1/verifications`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                },
+                "example": {
+                  "error": {
+                    "code": "plan_limit_reached",
+                    "message": "Plan limit reached"
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "`image_too_large_for_sync`: the photo is over 4 MB. Use the regular audit flow.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                },
+                "example": {
+                  "error": {
+                    "code": "image_too_large_for_sync",
+                    "message": "Image over 4 MB"
+                  }
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "`unsupported_media_type`: the body is not multipart/form-data. `unsupported_image_type`: the image is not JPEG, PNG, WebP, HEIC or HEIF.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                },
+                "example": {
+                  "error": {
+                    "code": "unsupported_image_type",
+                    "message": "Unsupported image type"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "`checks_not_supported`: only `ai` is answered in one call.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                },
+                "example": {
+                  "error": {
+                    "code": "checks_not_supported",
+                    "message": "Only checks=ai is supported here"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests, or more than the audits per second your account allows. Wait `Retry-After` seconds.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                },
+                "example": {
+                  "error": {
+                    "code": "too_many_requests",
+                    "message": "Rate limit exceeded"
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Storage was unavailable. Retrying creates a new audit: when the body carries `verification_id`, that audit was already created — read it with `GET /v1/verifications/{id}` instead of retrying.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "hint": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                },
+                "example": {
+                  "error": {
+                    "code": "storage_unavailable",
+                    "message": "Try again"
                   }
                 }
               }
@@ -7551,7 +8962,20 @@
             }
           },
           "402": {
-            "description": "plan_limit_reached or insufficient_credits: the account cannot cover another verification."
+            "description": "`plan_limit_reached` or `insufficient_credits`: the account cannot cover another verification. `monthly_verification_limit_reached`: the account already created its monthly verification allowance (1000 unless agreed otherwise) this UTC calendar month, through any channel; creation reopens when the month turns, or on the Enterprise plan. Verifications and links already created can still be completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "monthly_verification_limit_reached",
+                    "message": "Monthly limit of 1000 verifications reached. Contact Rial to move to the Enterprise plan."
+                  }
+                }
+              }
+            }
           },
           "404": {
             "description": "No template with that slug for the authenticated tenant.",
