@@ -152,5 +152,11 @@
       "vscode",
       "mcp"
     ]
+  },
+  "integrations": {
+    "posthog": {
+      "apiKey": "phc_qkjPtdAahxszndgmyviMBWN8cvWk4rzqmG6cpw2oaQWh",
+      "sessionRecording": false
+    }
   }
 }
