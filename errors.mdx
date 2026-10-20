@@ -58,6 +58,7 @@ try {
 | `link_cap_exceeded` | 429 | The template hit its daily or total cap. | Raise the cap or wait. |
 | `insufficient_credits` | 402 | No credits left. | Add credits in the dashboard, Account → Billing. |
 | `plan_limit_reached` | 402 | Monthly plan quota used up. | Upgrade, or wait for the next period. |
+| `monthly_verification_limit_reached` | 402 | The account created its monthly verifications (1000 unless agreed otherwise), counted per UTC calendar month across every channel. Verifications already created can still be completed. | Contact Rial for the Enterprise plan, or wait for the next month. |
 | `too_many_requests` | 429 | Rate limit. | Wait `Retry-After` seconds. The SDK retries reads on its own. |
 | `storage_unavailable` | 503 | A dependency is down. | Retry in a moment. |
 | `internal_error` | 500 | Our bug. | Retry; tell us if it persists. |
