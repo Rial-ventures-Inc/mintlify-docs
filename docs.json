@@ -74,6 +74,13 @@
             ]
           },
           {
+            "group": "Web",
+            "icon": "globe",
+            "pages": [
+              "sdks/web"
+            ]
+          },
+          {
             "group": "Mobile capture",
             "icon": "mobile",
             "pages": [
