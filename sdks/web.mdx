@@ -19,7 +19,7 @@ The person picks the file or takes the photos on your site, Rial says whether th
   The origin of your page (for example `https://claims.example.com`) must be in your account's allowed origins. Ask Rial to add it. Until it is there the browser blocks the audit, and a live capture never tells your page it finished.
 </Note>
 
-Or with a `<script>`, no bundler:
+Without a bundler, load it with a `<script>`:
 
 ```html
 <script src="https://unpkg.com/@rial/web@0.2.0/dist/rial-web.min.js"></script>
@@ -93,7 +93,7 @@ const { verificationId, status } = await capture.open({
 ### What your page needs
 
 - https (localhost is fine), and `<meta name="viewport" content="width=device-width, initial-scale=1">`.
-- If you send a `Content-Security-Policy`: `frame-src` must allow `https://verify.rial.io`.
+- If you send a `Content-Security-Policy`: `frame-src` must allow `https://verify.rial.io` (and `https://sandbox.verify.rial.io` for the sandbox).
 - If you send a `Permissions-Policy`: `camera=(self "https://verify.rial.io")`, and the same for `microphone`, `geolocation`, `accelerometer` and `gyroscope` if your steps use them.
 
 ### Redirect instead of the modal
@@ -108,7 +108,7 @@ capture.redirect({ token: verification.id });
 
 ## Errors
 
-Every failure is a `RialError` with `code`, `step`, `status` and a `hint` that says what to check.
+Every failure is a `RialError` with `code`, `step`, `status` and, for most codes, a `hint` that says what to check.
 
 ```ts
 import { RialError } from '@rial/web';
