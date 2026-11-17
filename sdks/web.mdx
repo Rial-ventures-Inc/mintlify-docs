@@ -1,0 +1,132 @@
+---
+title: "Web SDK"
+description: "Audit a photo or run a live capture from your own page, with a one-time token."
+"og:title": "Web SDK for photo verification in the browser | Rial"
+---
+
+```bash
+npm i @rial/web
+```
+
+The person picks the file or takes the photos on your site, Rial says whether they are real, and your secret key never reaches the browser. No dependencies, under 10 KB gzipped.
+
+| Where | Package | What it does |
+| --- | --- | --- |
+| Your backend | [`@rial/sdk`](/sdks/node) 0.6.0 or newer | Holds the secret key. Mints a one-time token and reads the verdict. |
+| Your page | `@rial/web` | Uploads the photo or opens the capture with that token. |
+
+<Note>
+  The origin of your page (for example `https://claims.example.com`) must be in your account's allowed origins. Ask Rial to add it. Until it is there the browser blocks the audit, and a live capture never tells your page it finished.
+</Note>
+
+Without a bundler, load it with a `<script>`:
+
+```html
+<script src="https://unpkg.com/@rial/web@0.2.0/dist/rial-web.min.js"></script>
+<script>
+  const rial = window.Rial.createRialAudit();
+</script>
+```
+
+## Audit a photo
+
+**1. Your backend** mints a one-time token:
+
+```ts
+import { createRial } from '@rial/sdk';
+
+const rial = createRial({ apiKey: process.env.RIAL_API_KEY });
+const { id, token } = await rial.audits.prepare({ metadata: { claimId: 'CLM-1' } });
+// keep id; send token to the page
+```
+
+**2. Your page** uploads the photo with it:
+
+```ts
+import { createRialAudit } from '@rial/web';
+
+const rial = createRialAudit();
+const result = await rial.audit({ token, file: input.files[0] });
+result.verdict; // { rial: false, signals: [{ type: 'ai_detected', confidence: 0.92 }] }
+```
+
+**3. Your backend decides.** `result` is for your UI only: the browser is in the user's hands, so whatever it reports back can be forged. Read the verdict in your backend with `rial.verifications.get(id)`, or by webhook if you passed `webhookUrl` to `prepare`.
+
+- A token is good for one file and expires after an hour (`expiresInSeconds` in `prepare`).
+- `audit` takes a `File`, `Blob` or `Uint8Array`: JPEG, PNG, WebP, HEIC or HEIF, up to 20 MB.
+- It waits up to 60 seconds for the verdict (`timeoutMs`) and accepts an `AbortSignal`.
+- To keep the verdict out of the browser, prepare the audit with `exposeResult: false`. The page then gets `{ id, status, verdictWithheld: true }`.
+
+## Live capture
+
+The person takes the photos with their camera in a modal over your site, and your page learns when they are done. The verdict goes to your backend, never to the page.
+
+**1. Your backend** creates the verification:
+
+```ts
+const verification = await rial.verifications.create({
+  steps: [{ key: 'front', type: 'image', description: 'Front of the car' }],
+});
+// send verification.id to the page
+```
+
+**2. Your page** opens the capture with it:
+
+```ts
+import { createRialCapture } from '@rial/web';
+
+const capture = createRialCapture();
+const { verificationId, status } = await capture.open({
+  token: verification.id,
+  lang: 'es', // 'es' | 'en' | 'pt'; default follows the browser
+  onEvent: (event) => console.log(event.type),
+});
+```
+
+**3. Your backend** reads the verdict with `rial.verifications.get(verificationId)`, or by webhook.
+
+- On a phone the capture fills the screen. On a computer the modal shows a QR, the person finishes on their phone, and `open` resolves then.
+- `onEvent` gets `ready`, `started`, `camera_denied`, `step_completed`, `submitted`, `completed`, `error` and `close_requested`.
+- If the person closes the modal first, `open` rejects with `closed`. The verification stays open until it expires, so you can open it again.
+- One capture at a time per page.
+
+### What your page needs
+
+- https (localhost is fine), and `<meta name="viewport" content="width=device-width, initial-scale=1">`.
+- If you send a `Content-Security-Policy`: `frame-src` must allow `https://verify.rial.io` (and `https://sandbox.verify.rial.io` for the sandbox).
+- If you send a `Permissions-Policy`: `camera=(self "https://verify.rial.io")`, and the same for `microphone`, `geolocation`, `accelerometer` and `gyroscope` if your steps use them.
+
+### Redirect instead of the modal
+
+Some in-app browsers and Android WebViews never give an iframe the camera. For those, send the person to the capture page:
+
+```ts
+capture.redirect({ token: verification.id });
+```
+
+`redirect` does not return a result, and coming back to your site afterwards is not supported yet. Read the outcome in your backend.
+
+## Errors
+
+Every failure is a `RialError` with `code`, `step`, `status` and, for most codes, a `hint` that says what to check.
+
+```ts
+import { RialError } from '@rial/web';
+
+try {
+  await rial.audit({ token, file });
+} catch (error) {
+  if (error instanceof RialError) console.log(error.code, error.hint);
+}
+```
+
+## Sandbox
+
+Mint and upload against the same environment. See [Sandbox](/sandbox).
+
+| | Sandbox `baseUrl` |
+| --- | --- |
+| `@rial/sdk` and `createRialAudit` | `https://sandbox.api.rial.io` |
+| `createRialCapture` | `https://sandbox.verify.rial.io` |
+
+The bundled types need TypeScript 5.7 or newer.
